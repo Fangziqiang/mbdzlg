@@ -1,0 +1,528 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<items>
+	<!--本配置文件配置格式（开始）-->
+	<!-- 汉字说明 -->
+	<!--
+		<节点名称>页面中调用的节点名称
+		<table>表名</table>=========================表名或用（）括起来的SQL语句
+		<filter>过滤条件</filter>====================过滤条件，有特殊字符时加<![CDATA[]]>
+		<resultcol>列1,列2...</resultcol>===========查询结果列
+		<orderby>字段名</orderby>====================排序字段名
+		<title>表头1,表头2...</title>================结果列表头
+		<searchcol>条件1,条件2...</searchcol>========查询条件
+		<searchcond>操作符1,操作符2...</searchcond>===对应查询条件的操作符
+		<searchtitle>描述1,描述2...</searchtitle>====查询条件文字描述
+		<pagesize>页数</pagesize>===================默认显示页数
+		<colwidth>宽度1,宽度2...</colwidth>==========结果列宽度百分比
+		</节点名称>-->
+	<!--本配置文件配置格式（结束）-->
+	
+	<!-- 行政区划 -->
+	<svc>
+		<table>(SELECT M.USERID,S.SERVICEID fwid,S.SERVICENAME fwmc,S.SERVICETYPE,S.SERVICETYPENAME,S.SERVICESOURCE,S.OUTPUT,S.INPUT,S.SERVICEDESC SERVICEDESC FROM T_SVR_MYSERVICE M,T_SVR_SERVICE S  WHERE M.SERVICEID = S.SERVICEID  AND M.STATUS = S.STATUS and M.STATUS='1' ORDER BY S.SERVICETYPE ASC)</table>
+		<resultcol>fwid,fwmc</resultcol>
+		<orderby>fwid</orderby>
+		<title>服务编号,服务名称</title>
+		<searchcol>fwmc</searchcol>
+		<searchcond>like</searchcond>
+		<searchtitle>服务名称</searchtitle>
+		<pagesize>10</pagesize>
+		<colwidth>40%,60%</colwidth>
+	</svc>
+	
+	<!-- 行政区划 -->
+	<xzqh>
+		<table>(select dm xzqh,mc xzqhmc from T_DM_XZQH where dm!='000000')</table>
+		<resultcol>xzqh,xzqhmc</resultcol>
+		<orderby>xzqh</orderby>
+		<title>行政区划代码,行政区划名称</title>
+		<searchcol>xzqh,xzqhmc</searchcol>
+		<searchcond>like,like</searchcond>
+		<searchtitle>行政区划代码,行政区划名称</searchtitle>
+		
+		<pagesize>10</pagesize>
+		<colwidth>40%,60%</colwidth>
+	</xzqh>	
+	<!-- 人员-取证报名 -->
+	<ryforqzbm>
+		<table>
+			(select t.ryid,
+				       t.rymc,
+				       t.qydm,
+				       t.sfzh,
+				       t.xzqh,
+				       x.mc xb,
+				       w.mc zw,
+				       q.qymc,
+				       q.qylx
+				  from t_ry_ryxx t,
+				       t_px_pxbbmxx b,
+				       (select b.*
+				          from (select a.*,
+				                       row_number() over(partition by a.ryid order by a.zsyxq desc) rn
+				                  from t_zs_zsxx a) b
+				         where b.rn = 1) z,
+				       t_qy_qyxx q,
+				       t_dm_xb x,
+				       t_dm_zw w
+				 where t.ryid = b.ryid(+)
+				   and q.zt = '1'
+				   and t.qydm = q.qydm
+				   and t.xb = x.dm(+)
+				   and t.zw = w.dm(+)
+				   and t.ryid = z.ryid(+)
+				   and (z.ryid is null or (z.zt = '2' and z.pxbc like '%Q%'))
+				   and nvl(b.pxbc, ' ') != ':pxbc'
+				   and t.zt = '1'
+				minus
+				select t.ryid,
+				       t.rymc,
+				       t.qydm,
+				       t.sfzh,
+				       t.xzqh,
+				       x.mc xb,
+				       w.mc zw,
+				       q.qymc,
+				       q.qylx
+				  from t_ry_ryxx    t,
+				       t_px_pxbbmxx b,
+				       t_px_pxbxx   p,
+				       t_qy_qyxx    q,
+				       t_dm_xb      x,
+				       t_dm_zw      w
+				 where nvl(b.pxbc, ' ') != ':pxbc'
+				   and b.pxbc = p.pxbc
+				   and nvl(p.zt, ' ') != '2'
+				   and p.pxlx = '1'
+				   and t.qydm = q.qydm
+				   and t.xb = x.dm(+)
+				   and t.zw = w.dm(+)
+				   and q.zt = '1'
+				   and t.ryid = b.ryid(+)
+				   and t.zt = '1'
+				   and p.pxrq >= to_date((to_char(sysdate, 'yyyy-mm-dd')), 'yyyy-mm-dd'))
+		</table>
+		<filter></filter>
+		<resultcol>rymc,sfzh,qymc,qydm,xzqh,ryid,xb,zw</resultcol>
+		<orderby>qydm,xzqh</orderby>
+		<title>人员姓名,身份证,所属企业</title>
+		<searchcol>rymc,sfzh</searchcol>
+		<searchcond>like,like</searchcond>
+		<searchtitle>人员姓名,身份证</searchtitle>
+		<pagesize>10</pagesize>
+		<colwidth>25%,40%,30%</colwidth>
+	</ryforqzbm>	
+	<htxx>
+	   <table>
+	      (
+	       SELECT 
+	        distinct a.id,a.htmc,
+	        substr(to_char(a.htbarq,'yyyy-MM-dd'),0,10) htbarq,
+	        substr(to_char(a.htqdrq,'yyyy-MM-dd'),0,10) htqdrq,
+	        a.htbh,
+	        a.zydd,
+	        a.sm,
+	       substr(to_char(a.htjzrq,'yyyy-MM-dd'),0,10) htjzrq,
+	        a.jsdw,a.jsdwdm,a.dwdm,
+	        decode(b.htid,null,'','已注册') bz
+	       FROM t_dw_htba a,t_svr_admin_ht b
+	       where a.zt='0' and a.id = b.htid(+) 
+	       )
+	    </table>
+		<resultcol>htmc,htbarq,jsdw,bz,jsdwdm,id,dwdm,htqdrq,htbh,zydd,sm,htjzrq</resultcol>
+		<orderby>htbarq desc</orderby>
+		<title>合同名称,合同备案日期,委托单位,备注</title>
+		<searchcol>htmc</searchcol>
+		<searchcond>like</searchcond>
+		<searchtitle>合同名称</searchtitle>
+		<pagesize>10</pagesize>
+		<colwidth>40%,60%</colwidth>
+	</htxx>
+	<zzjghtxx>
+	   <table>
+	      (
+	       SELECT 
+	        distinct a.id,a.htmc,
+	        substr(to_char(a.htbarq,'yyyy-MM-dd'),0,10) htbarq,
+	        substr(to_char(a.htqdrq,'yyyy-MM-dd'),0,10) htqdrq,
+	        a.htbh,
+	        a.zydd,
+	        a.sm,
+	       substr(to_char(a.htjzrq,'yyyy-MM-dd'),0,10) htjzrq,
+	        a.jsdw,a.jsdwdm,a.dwdm,
+	        decode(b.htid,null,'','已注册') bz
+	       FROM t_dw_htba a,t_svr_zzjg_ht b
+	       where a.zt='0' and a.id = b.htid(+) 
+	       )
+	    </table>
+		<resultcol>htmc,htbarq,jsdw,bz,jsdwdm,id,dwdm,htqdrq,htbh,zydd,sm,htjzrq</resultcol>
+		<orderby>htbarq desc</orderby>
+		<title>合同名称,合同备案日期,委托单位,备注</title>
+		<searchcol>htmc</searchcol>
+		<searchcond>like</searchcond>
+		<searchtitle>合同名称</searchtitle>
+		<pagesize>10</pagesize>
+		<colwidth>40%,60%</colwidth>
+	</zzjghtxx>
+	<xmxx>
+	   <table>
+	      ( 
+	        SELECT sqxh xmsqxh, a.xmmc, a.xmjb, b.mc xmjbmc, a.sjsgdwdm, a.sjsgdwmc,
+                 a.aqjldwdm, a.aqjldwmc, DECODE (c.xmsqxh,
+                                             NULL, '',
+                                             '已注册'
+                                            ) bz, a.jsdw, a.jsdwdm,lrrq
+            FROM t_xksq_bpzyxm a, t_dm_zzdj b, t_svr_zzjg_xm c
+           WHERE a.xmjb = b.dm AND a.zt = '0' AND a.sqxh = c.xmsqxh(+)
+	       )
+	    </table>
+		<resultcol>xmmc,xmjbmc,sjsgdwmc,aqjldwmc,sjsgdwdm,aqjldwdm,jsdw,jsdwdm,xmsqxh,xmjb</resultcol>
+		<orderby>lrrq</orderby>
+		<title>项目名称,项目级别,设计施工单位名称,安全监理单位名称</title>
+		<searchcol>xmmc</searchcol>
+		<searchcond>like</searchcond>
+		<searchtitle>项目名称</searchtitle>
+		<pagesize>10</pagesize>
+		<colwidth>40%,60%</colwidth>
+	</xmxx>
+	<!-- 人员-换证报名 -->
+	<ryforhzbm>
+		<table>
+			(select t.ryid,
+       t.rymc,
+       t.sfzh,
+       t.qydm,
+       t.xzqh,
+       q.qymc,
+       x.mc xb,
+       w.mc zw,
+       q.qylx
+  from ((select r.xb, r.zw, r.ryid, r.rymc, r.sfzh, r.qydm, r.xzqh
+           from t_ry_ryxx r
+          where r.zt = 1)
+       
+       minus
+         select t.xb, t.zw, t.ryid, t.rymc, t.sfzh, t.qydm, t.xzqh
+           from t_ry_ryxx t, t_px_pxbbmxx p
+          where nvl(p.pxbc, ' ') = ':pxbc'
+            and t.ryid = p.ryid
+            and t.zt = '1'
+         
+         minus
+         select t.xb, t.zw, t.ryid, t.rymc, t.sfzh, t.qydm, t.xzqh
+           from t_ry_ryxx t, t_px_pxbbmxx p, t_px_pxbxx b
+          where nvl(p.pxbc, ' ') != ':pxbc'
+            and p.pxbc = b.pxbc
+            and b.pxlx = '2'
+            and nvl(b.zt, ' ') != '2'
+            and t.ryid = p.ryid
+            and t.zt = '1'
+            and b.pxrq >=
+                to_date((to_char(sysdate, 'yyyy-mm-dd')), 'yyyy-mm-dd')) t, t_qy_qyxx q, t_dm_xb x, t_dm_zw w
+          where q.qydm = t.qydm
+            and q.zt = '1'
+            and t.xb = x.dm(+)
+            and t.zw = w.dm(+)
+	             )
+		</table>
+		<filter></filter>
+		<resultcol>rymc,sfzh,qymc,qydm,xzqh,ryid,xb,zw</resultcol>
+		<orderby>qydm,xzqh</orderby>
+		<title>人员姓名,身份证,所属企业</title>
+		<searchcol>rymc,sfzh</searchcol>
+		<searchcond>like,like</searchcond>
+		<searchtitle>人员姓名,身份证</searchtitle>
+		<pagesize>10</pagesize>
+		<colwidth>25%,40%,30%</colwidth>
+	</ryforhzbm>
+	<!-- 人员-再培训报名 -->
+	<ryforzpxbm>
+		<table>
+			(select t.ryid,
+	       t.rymc,
+	       t.sfzh,
+	       t.qydm,
+	       t.xzqh,
+	       q.qymc,
+	       x.mc xb,
+	       w.mc zw,
+	       q.qylx
+	  from ((select r.xb, r.zw, r.ryid, r.rymc, r.sfzh, r.qydm, r.xzqh
+	           from t_ry_ryxx r,
+	                (select b.*
+	                   from (select a.*,
+	                                row_number() over(partition by a.ryid order by a.zsyxq desc) rn
+	                           from t_zs_zsxx a) b
+	                  where b.rn = 1
+	                    and b.zt = '1'
+	                    and b.zsyxq >=
+	                        to_date((to_char(sysdate, 'yyyy') + 1 || '-3-1'),
+	                                'yyyy-mm-dd')
+	                    and to_char(b.fzrq, 'yyyy') != to_char(sysdate, 'yyyy')) z,
+	                t_px_pxbbmxx px
+	          where r.ryid = z.ryid
+	            and r.ryid = px.ryid(+)
+	            and r.zt = 1)
+	       
+	       minus
+	         select t.xb, t.zw, t.ryid, t.rymc, t.sfzh, t.qydm, t.xzqh
+	           from t_ry_ryxx t, t_px_pxbbmxx p
+	          where nvl(p.pxbc, ' ') = ':pxbc'
+	            and t.ryid = p.ryid
+	            and t.zt = '1'
+	         minus
+	         select t.xb, t.zw, t.ryid, t.rymc, t.sfzh, t.qydm, t.xzqh
+	           from t_ry_ryxx t, t_px_pxbbmxx p, t_px_pxbxx b
+	          where nvl(p.pxbc, ' ') != ':pxbc'
+	            and p.pxbc = b.pxbc
+	            and b.pxlx = '3'
+	            and nvl(b.zt, ' ') != '2'
+	            and t.ryid = p.ryid
+	            and t.zt = '1'
+	            and b.pxrq >=
+	                to_date((to_char(sysdate, 'yyyy-mm-dd')), 'yyyy-mm-dd')) t, t_qy_qyxx q, t_dm_xb x, t_dm_zw w
+	          where q.qydm = t.qydm
+	            and q.zt = '1'
+	            and t.xb = x.dm(+)
+	            and t.zw = w.dm(+))
+		</table>
+		<filter></filter>
+		<resultcol>rymc,sfzh,qymc,qydm,xzqh,ryid,xb,zw</resultcol>
+		<orderby>qydm,xzqh</orderby>
+		<title>人员姓名,身份证,所属企业</title>
+		<searchcol>rymc,sfzh</searchcol>
+		<searchcond>like,like</searchcond>
+		<searchtitle>人员姓名,身份证</searchtitle>
+		<pagesize>10</pagesize>
+		<colwidth>25%,40%,30%</colwidth>
+	</ryforzpxbm>
+	<!-- 人员-报名 -->
+	<pxb>
+		<table>
+			(select t.pxbc,t.pxbmc pxbm from t_px_pxbxx t where zt = '1' or zt='3' )
+		</table>
+		<filter></filter>
+		<resultcol>pxbc,pxbm</resultcol>
+		<orderby>pxbc</orderby>
+		<title>培训班次,培训班名</title>
+		<searchcol>pxbc,pxbm</searchcol>
+		<searchcond>like,like</searchcond>
+		<searchtitle>培训班次,培训班名</searchtitle>
+		<pagesize>10</pagesize>
+		<colwidth>50%,50%</colwidth>
+	</pxb>	
+	<pxbforyxqbg>
+		<table>
+			(select distinct t.pxbc,t.pxbmc pxbm from t_px_pxbxx t,t_zs_zsxx z where t.zt = '1' or t.zt='3' and nvl(z.zt,' ')!='2' and nvl(z.zsbh,'')!='' )
+		</table>
+		<filter></filter>
+		<resultcol>pxbc,pxbm</resultcol>
+		<orderby>pxbc</orderby>
+		<title>培训班次,培训班名</title>
+		<searchcol>pxbc,pxbm</searchcol>
+		<searchcond>like,like</searchcond>
+		<searchtitle>培训班次,培训班名</searchtitle>
+		<pagesize>10</pagesize>
+		<colwidth>50%,50%</colwidth>
+	</pxbforyxqbg>
+	<!-- 集团 -->
+	<scqy>
+		<table>
+			(select qymc,qydm,xzqh,b.mc xzqhmc,a.qylx from t_qy_qyxx a,t_dm_xzqh b where a.xzqh=b.dm and length(qydm)=4 and a.zt='1' order by qydm)
+		</table>
+		<resultcol>xzqhmc,qydm,qymc,xzqh</resultcol>
+		<orderby>xzqh</orderby>
+		<title>企业作业地,企业代码,企业名称</title>
+		<searchcol>qydm,qymc</searchcol>
+		<searchcond>like,like</searchcond>
+		<searchtitle>企业代码,企业名称</searchtitle>
+		<pagesize>10</pagesize>
+		<colwidth>25%,30%,45%</colwidth>
+	</scqy>
+	
+	<!-- 企业 -->
+	<qyscd>
+		<table>
+			(select qymc,qydm,xzqh,b.mc xzqhmc,a.qylx from t_qy_qyxx a,t_dm_xzqh b where a.xzqh=b.dm and length(qydm)=7 and a.zt ='1' order by qydm)
+		</table>
+		<resultcol>xzqhmc,qydm,qymc,xzqh</resultcol>
+		<orderby>xzqh</orderby>
+		<title>企业作业地,企业代码,企业名称</title>
+		<searchcol>qydm,qymc</searchcol>
+		<searchcond>like,like</searchcond>
+		<searchtitle>企业代码,企业名称</searchtitle>
+		<pagesize>10</pagesize>
+		<colwidth>25%,30%,45%</colwidth>
+	</qyscd>
+	<!-- 企业 -->
+	<qyxx>
+		<table>
+			(select a.qymc,a.qydm,a.xzqh,b.mc xzqhmc,d.mc qyssd,c.mc qylx,a.fid,a.xzqh qyxzqh,e.mc qyxkzssd 
+				from t_qy_qyxx a,t_dm_xzqh b,t_dm_qylx c,t_dm_xzqh d,t_dm_xzqh e
+				where a.xzqh=b.dm and a.qyssd = d.dm and a.qyxkzssd = e.dm 
+				and a.qylx = c.dm and a.zt = '1' and a.qylx != '03'
+			)
+		</table>
+		<resultcol>xzqhmc,qyssd,qymc,qydm,xzqh,qylx,qyxzqh,qyxkzssd</resultcol>
+		<orderby>qylx,qydm</orderby>
+		<title>企业作业地,企业所属地,企业名称,企业代码</title>
+		<searchcol>qydm,qymc</searchcol>
+		<searchcond>like,like</searchcond>
+		<searchtitle>企业代码,企业名称</searchtitle>
+		<pagesize>10</pagesize>
+		<colwidth>25%,25%,25%,25%</colwidth>
+	</qyxx>
+	<!-- 所属集团 -->
+	<ssjt>
+		<table>
+			(select a.qymc ssjtmc,b.mc jtssdmc,a.qydm ssjt,a.qyssd jtssd,a.xzqh,a.qydm
+  				from t_qy_qyxx a,t_dm_xzqh b
+ 				where a.fid = '1' and a.jtssd = b.dm and a.zt='1' and a.qylx != '03'
+			)
+		</table>
+		<resultcol>ssjtmc,jtssdmc,ssjt,jtssd</resultcol>
+		<orderby>jtssd</orderby>
+		<title>集团名称,集团所在地</title>
+		<searchcol>ssjtmc,jtssdmc</searchcol>
+		<searchcond>like,like</searchcond>
+		<searchtitle>集团名称,集团所在地</searchtitle>
+		<pagesize>10</pagesize>
+		<colwidth>45%,55%</colwidth>
+	</ssjt>
+	
+	<!-- 所属企业 -->
+	<ssqy>
+		<table>
+			(select j.dwdm,j.dwmc,j.dwdz,j.xzqhdm,d.dwid,d.signtime,d.dwjb from t_dw_jbxx j,
+							(select * from t_svr_dwxx where status='1') d 
+						where j.dwdm=d.dwdm and zt='0'  and dwlx='4'  order by d.dwjb asc
+			)
+		</table>
+		<resultcol>dwdm,dwmc,dwid,dwjb</resultcol>
+		<orderby>dwjb</orderby>
+		<title>企业代码,企业名称,企业ID,企业级别</title>
+		<searchcol>dwdm,dwmc</searchcol>
+		<searchcond>like,like</searchcond>
+		<searchtitle>企业代码,企业名称</searchtitle>
+		<pagesize>10</pagesize>
+		<colwidth>45%,55%</colwidth>
+	</ssqy>
+	<!-- 获取企业分公司 -->
+	<qyfgs>
+		<table>
+			(select a.qymc fgsmc,a.qydm fgsdm,a.xzqh,b.mc xzqhmc,d.mc qyssd,f.mc qyxkzssd,c.MC qylx,a.fid
+				from t_qy_qyxx a,t_dm_xzqh b,t_dm_qylx c,t_dm_xzqh d,t_dm_xzqh f 
+				where a.xzqh=b.dm and a.qyssd = d.dm and a.QYXKZSSD = f.dm 
+				and a.qylx = c.dm and a.fid != '1' and a.zt='1'
+			)
+		</table>
+		<resultcol>xzqhmc,qyssd,fgsmc,fgsdm,xzqh,qylx</resultcol>
+		<orderby>xzqh</orderby>
+		<title>企业作业地,企业所属地,企业分公司名称,企业代码</title>
+		<searchcol>fgsdm,fgsmc</searchcol>
+		<searchcond>like,like</searchcond>
+		<searchtitle>企业代码,企业分公司名称</searchtitle>
+		<pagesize>10</pagesize>
+		<colwidth>25%,30%,45%</colwidth>
+	</qyfgs>
+	<!-- 企业所属地 -->
+	<qyssd>
+		<table>(select dm,mc,dm qyssd,mc qyssdmc,jc1 jc from T_DM_XZQHJC)</table>
+		<resultcol>dm,mc,qyssd,qyssdmc,jc</resultcol>
+		<orderby>dm</orderby>
+		<title>行政区划代码,行政区划名称</title>
+		<searchcol>dm,mc</searchcol>
+		<searchcond>like,like</searchcond>
+		<searchtitle>行政区划代码,行政区划名称</searchtitle>
+		
+		<pagesize>10</pagesize>
+		<colwidth>40%,60%</colwidth>
+	</qyssd>
+	<!-- 人员信息 -->	
+	<ryxx>
+		<table>(select a.rymc,a.ryid,b.mc glyszdmc,a.xzqh glyszd,a.xzqh,a.qydm from t_ry_ryxx a,t_dm_xzqh b where a.xzqh = b.dm and a.zt='1')</table>
+		<resultcol>rymc,glyszdmc,ryid,glyszd</resultcol>
+		<orderby>glyszd</orderby>
+		<title>姓名,人员所在地</title>
+		<searchcol>rymc,glyszd</searchcol>
+		<searchcond>like,like</searchcond>
+		<searchtitle>姓名,人员所在地</searchtitle>
+		
+		<pagesize>10</pagesize>
+		<colwidth>35%,35%</colwidth>
+	</ryxx>	
+	<!-- 院校信息 -->
+	<yxxx>
+		<table>
+			(select a.qymc, a.qydm, a.xzqh, b.mc xzqhmc, d.mc qyssd,a.xzqh qyxzqh,a.qylx
+  				from t_qy_qyxx a, t_dm_xzqh b, t_dm_xzqh d
+ 				where a.xzqh = b.dm and a.qyssd = d.dm and a.qylx='03' and a.zt='1'
+			)
+		</table>
+		<resultcol>qymc,qydm,xzqhmc,xzqh,qyssd,qyxzqh,qylx</resultcol>
+		<orderby>qydm</orderby>
+		<title>院校名称,院校代码</title>
+		<searchcol>qydm,qymc</searchcol>
+		<searchcond>like,like</searchcond>
+		<searchtitle>院校代码,院校名称</searchtitle>
+		<pagesize>10</pagesize>
+		<colwidth>15%,15%</colwidth>
+	</yxxx>
+	<!-- 企业作业地 -->
+	<qyzyd>
+		<table>(select dm xzqh,mc xzqhmc from t_dm_xzqhjc )</table>
+		<resultcol>xzqh,xzqhmc</resultcol>
+		<orderby>xzqh</orderby>
+		<title>行政区划代码,行政区划名称</title>
+		<searchcol>xzqh,xzqhmc</searchcol>
+		<searchcond>like,like</searchcond>
+		<searchtitle>行政区划代码,行政区划名称</searchtitle>
+		
+		<pagesize>10</pagesize>
+		<colwidth>40%,60%</colwidth>
+	</qyzyd>	
+	
+	<dwxx>
+		<table>(
+			select 
+			a.dwdm,
+			a.dwmc,
+			a.dwdz,
+			a.dwlx, 
+			b.mc dwlx_dicvalue,
+			a.zzdj,
+			c.mc zzdj_dicvalue,
+			a.fzr,
+		    a.lxdh
+		    from t_dw_jbxx a,t_dm_dwlx b,t_dm_dwzzdj c 
+		   where 
+		   a.dwlx in ('2','3','4') 
+		   and a.zt= '0' 
+		   and a.dwlx = b.dm 
+		   and a.zzdj = c.dm(+))
+		   </table>
+		<resultcol>dwdm,dwmc,dwlx_dicvalue,fzr,dwdz,dwlx,zzdj,zzdj_dicvalue,lxdh</resultcol>
+		<orderby>dwdm</orderby>
+		<title>单位代码,单位名称,单位类型,法定代表人</title>
+		<searchcol>dwdm,dwmc</searchcol>
+		<searchcond>like,like</searchcond>
+		<searchtitle>单位代码,单位名称</searchtitle>
+		
+		<pagesize>10</pagesize>
+		<colwidth>20%,40%,20%,20%</colwidth>
+	</dwxx>
+	
+	<parentdw>
+		<table>(select a.dwdm,a.dwmc,a.jgmc,a.dwid,b.mc dwlx,c.bpzydwlb from t_svr_dwxx a,t_dm_dwlx b,t_dw_jbxx c
+		 where a.dwlx = b.dm and a.dwdm=c.dwdm)</table>
+		<resultcol>dwdm,dwmc,jgmc,dwlx,dwid,bpzydwlb</resultcol>
+		<orderby>dwdm</orderby>
+		<title>单位代码,单位名称,机构名称,单位类型</title>
+		<searchcol>dwdm,dwmc</searchcol>
+		<searchcond>like,like</searchcond>
+		<searchtitle>单位代码,单位名称</searchtitle>
+		
+		<pagesize>10</pagesize>
+		<colwidth>30%,40%,30%</colwidth>
+	</parentdw>
+</items>

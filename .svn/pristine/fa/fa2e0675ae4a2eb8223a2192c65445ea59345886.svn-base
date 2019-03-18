@@ -1,0 +1,108 @@
+package com.core.utils;
+
+public class SystemConstants {
+	/**
+	 * 默认主键序列表
+	 */
+	public static final String DB_PK_SEQUENCE = "q_table_pkid";
+	
+	public static final String DB_TABLEPKFIELDS = "db_tablepkfields";
+	/**
+	 * 表名
+	 */
+	public static final String DB_TABLENAME = "db_tablename";
+	/**
+	 * 排序字段，可以加上desc等
+	 */
+	public static final String DB_ORDERBY = "db_resultorderby";
+	/**
+	 * 条件字段
+	 */
+	public static final String DB_CONDITIONFIELDS = "condition_fields";
+	/**
+	 * Blob字段
+	 */
+	public static final String DB_BLOBFIELD = "db_blobfields";
+	/**
+	 * TIMESTAMP字段
+	 */
+	public static final String DB_TIMESTAMPFIELD = "qztimestamp";
+	
+	public static final String BLOBFIELDS = "ry_zp,ry_qm,zp";
+	
+	public static final String SUCCESS_KEY = "Success";
+
+	public static final String SYSTEM_FAILURE_KEY = "SystemFailure";
+
+	public static final String SESSION_TIME_OUT_KEY = "SessionTimeOut";
+
+	public static final String FAILURE_KEY = "Failure";
+
+	public static final String LOGIN_KEY = "Login";
+
+	public static final String GET_KEY = "Get";
+
+	public static final String CONTINUE_KEY = "Continue";
+
+	public static final String RESULT_KEY = "Result";
+	
+	public static final String VIEW_KEY = "View";
+
+	public static final String FILL_KEY = "Fill";
+
+	public static final String EQUIP_KEY = "Equip";
+
+	public static final String QUERY_KEY = "Query";
+
+	public static final String SYSMESSAGE_KEY = "systemmessage"; //返回消息
+
+	public static final String GNCODE_KEY = "gncode"; 	//功能代码
+
+	public static final String XXZT_ZC = "0"; 	//正常,有效的
+
+	public static final String XXZT_ZX = "1"; 	//注销的
+
+	public static final String SAVELOG_BEAN = "log_bean";
+
+	public static final int PAGESIZE = 10;	//页码设置
+	
+	public static final String MESSAGE_KEY = "ApplicationMessage";	//消息设置
+	
+	
+	
+	
+	//证件流程
+	public static final String SBLC_WSB = "0";
+	public static final String SBLC_JLC = "1";
+	public static final String SBLC_XLC = "2";
+
+	/**
+	 * 数据状态 0:无效  1:有效
+	 */
+	public static final String ZT_FALSE = "0"; 
+	public static final String ZT_TRUE = "1"; 
+	/*
+	 * 行政区划级别
+	 */	
+	public static final int MINISTRY = 0;//公安部
+    public static final int PROVINCE = 1;//省级
+    public static final int CITY = 2;//地市
+    public static final int COUNTRY = 3;//县级
+    public static final int PQDW = 4;//配枪单位
+    public static final int ERRORLEVEL = -1;//县级
+    public static final String ERRORXZHQH = "999999";//产生错误时候的代码
+	public static final String SUPERIORXZHQH = "888888";//公安部的上级代码
+	public static final String MINISTRYXZHQH = "000000";//公安部的代码
+	
+	
+    
+	public static final String SAVELIST_KEY = "Savelist";	//列表保存
+	public static final String COMMOMLIST_KEY = "Commonlist";	//列表公共页
+	
+	public static final String ISKQZF_KQ = "0";	//开启支付功能
+	public static final String ISKQZF_BKQ = "1";	//不开启
+	
+	public static final String USER_SESSION = "userSessionBean";
+	
+	
+}

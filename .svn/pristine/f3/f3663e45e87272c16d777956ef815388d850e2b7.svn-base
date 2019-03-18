@@ -1,0 +1,50 @@
+package com.jadlsoft.struts.action;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+
+import com.core.utils.SpringBeanFactory;
+import com.jadlsoft.business.dzlg.DzlgManager;
+import com.jadlsoft.domain.DzlgLyffMmxzBean;
+import com.jadlsoft.utils.MBDZLGConstant;
+/**
+ * 领用发放获取密码
+* @ClassName: 
+* @author fandengyong
+* @date 2017-7-27 上午8:56:49
+ */
+public class DzlgLyffJsonServlert extends HttpServlet {
+	private static Logger logger = Logger.getLogger(DzlgLyffJsonServlert.class);
+	public void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		this.doPost(request, response);
+	}
+	public void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		response.setCharacterEncoding("UTF-8");
+		PrintWriter out = response.getWriter();
+		DzlgManager dzlgManager = (DzlgManager) SpringBeanFactory.getBean("dzlgManager");
+		// 读取请求内容
+		String str = null;
+		try {
+			String xlh = request.getParameter("xlh");
+			String dwdm = request.getParameter("dwdm");
+			str = dzlgManager.lyffToWlfwpt(new DzlgLyffMmxzBean(xlh, dwdm));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		if(str != null && !"".equals(str) && str.length() > 15 ){
+			str = str.replaceAll("\\\\r\\\\n", "").replaceAll("\\\\/", "/").replaceAll("\\\\n", "");
+		}
+		logger.info("领用发放下载返回数据："+str);
+		out.print(str);
+		logger.info("********************************");
+	}
+}

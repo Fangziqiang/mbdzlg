@@ -1,0 +1,35 @@
+package com.jadlsoft.business.dzlg;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.jadlsoft.domain.DzlgxxBean;
+import com.jadlsoft.utils.HexUtil;
+import com.jadlsoft.utils.TripleDES_Socket;
+/**
+ * 
+ * 电子雷管解析工具
+ * @author wujiaxu
+ * @Time 2017-7-4 下午5:06:11
+ *
+ */
+public class DzlgReturnUtil {
+
+	/**
+	 * 
+	 * 非法请求
+	 * @author wujiaxu
+	 * @return 
+	 * @throws Exception 
+	 * @Time 2017-7-6 上午10:06:26
+	 */
+	public static byte[] Error_Req() throws Exception {
+		return TripleDES_Socket.des3EncodeECB(new byte[]{1});
+		
+	}
+
+	
+	
+}

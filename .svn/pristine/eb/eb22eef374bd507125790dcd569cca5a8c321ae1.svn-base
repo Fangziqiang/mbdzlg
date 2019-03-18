@@ -1,0 +1,37 @@
+package com.core.model.role;
+
+import java.io.Serializable;
+import java.util.List;
+
+/**         
+ * @ClassName：Role   
+ * @Description：   
+ * @author ：zhangqing   
+ * @date ：2015-9-2 上午9:38:12      
+ * @version      
+ */
+public class BaseRole implements Serializable{
+	private String roleid;       	//角色编号
+	private String rolename;  		//角色名称
+	private List permisses;	  		//权限列表
+	public String getRoleid(){
+		return roleid;
+	}
+	public void setRoleid(String roleid) {
+		this.roleid = roleid;
+	}
+	public String getRolename() {
+		return rolename;
+	}
+	public void setRolename(String rolename) {
+		this.rolename = rolename;
+	}
+	public List getPermisses() {
+		return permisses;
+	}
+	public void setPermisses(List permisses) {
+		this.permisses = permisses;
+	}
+	
+	
+}

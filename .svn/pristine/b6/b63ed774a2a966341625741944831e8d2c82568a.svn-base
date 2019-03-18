@@ -1,0 +1,12 @@
+package com.core.model.module;
+
+/**         
+ * @ClassName：ModuleBean   
+ * @Description：   
+ * @author ：zhangqing   
+ * @date ：2015-8-28 下午2:19:06      
+ * @version      
+ */
+public interface ModuleBean {
+
+}

@@ -1,0 +1,77 @@
+package com.jadlsoft.json;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+
+import com.jadlsoft.business.dzlg.DzlgManager;
+import com.core.utils.SpringBeanFactory;
+
+public class DzlgSysbJsonServlert extends HttpServlet{
+	private static Logger logger = Logger.getLogger(DzlgSysbJsonServlert.class);
+	public void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		this.doPost(request, response);
+	}
+
+	public void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		// 读取请求内容
+		PrintWriter out = response.getWriter();
+		System.out.println(request.getRequestURI());
+		Map<String, String[]> params = request.getParameterMap(); 
+		System.out.println(params.size());
+		String sbbh = request.getParameter("sbbh");
+		String jd = request.getParameter("jd");
+		String wd = request.getParameter("wd");
+		String uid = request.getParameter("uid");
+		String[] uidArr = null;
+		if( uid != null && uid.length() > 0){
+			uidArr = uid.split(",");
+		}
+		List dzlgUidList = new ArrayList();
+		for (int i = 0; i < uidArr.length; i++) {
+			dzlgUidList.add(uidArr[i]);
+		}
+		String dwdm = request.getParameter("dwdm");
+		String bpsj = request.getParameter("bpsj");
+		String bprysfz = request.getParameter("bprysfz");
+		String htid = request.getParameter("htid");
+		String xmbh = request.getParameter("xmbh");
+
+		DzlgManager dzlgManager = (DzlgManager) SpringBeanFactory.getBean("dzlgManager");
+		Map map = new HashMap();
+		map.put("bpsj", bpsj);
+		map.put("bprysfz", bprysfz);
+		map.put("qbqbh", sbbh);
+		map.put("jd", jd);
+		map.put("wd", wd);
+		map.put("uidList", dzlgUidList);
+		map.put("dataType", "sysb");
+		map.put("htid", htid);
+		map.put("xmbh", xmbh);
+		map.put("jklx", "http");
+		String strXml = dzlgManager.createXml(map);
+		logger.info("********************************");
+		logger.info("Http使用上报");
+		logger.info("起爆器编号："+map.get("qbqbh"));
+		logger.info("单位代码："+map.get("dwdm"));
+		logger.info("经度："+map.get("jd"));
+		logger.info("纬度："+map.get("wd"));
+		logger.info("雷管共"+dzlgUidList.size()+"发");
+		String str = dzlgManager.getJsonReturnValue(strXml,map);
+		logger.info("返回数据："+str);
+		out.print(str);
+		logger.info("********************************");
+	}
+}

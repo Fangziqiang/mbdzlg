@@ -1,0 +1,126 @@
+package com.jadlsoft.utils;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+
+import javax.crypto.Cipher;  
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+/**
+ * 3DES加密解密工具类   --网络服务平台电子雷管
+ * @author niutongda
+ *
+ */
+public class SecretUtils {  
+	
+	public static final String ALGORITHM = "DESede";
+	private final static byte[] KEY = "abcdefgh12345678ABCDEFGH".getBytes();
+	
+	private static Cipher TripleDES_cp;
+	
+	private static Cipher TripleDES_cp_decode;
+	static {
+		
+		 SecretKey deskey = new SecretKeySpec(KEY, ALGORITHM); 
+		try {
+			TripleDES_cp = Cipher.getInstance("DESede/ECB/PKCS5Padding");
+			TripleDES_cp.init(Cipher.ENCRYPT_MODE, deskey);
+			TripleDES_cp_decode = Cipher.getInstance("DESede/ECB/PKCS5Padding");
+			TripleDES_cp_decode.init(Cipher.DECRYPT_MODE, deskey);
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		} catch (NoSuchPaddingException e) {
+			e.printStackTrace();
+		} catch (InvalidKeyException e) {
+			e.printStackTrace();
+		}
+	}
+   /** 
+    * ECB加密
+    * @param data 明文 
+    */  
+   public synchronized static byte[] des3EncodeECB( byte[] data)  
+           throws Exception {  
+       byte[] bOut = TripleDES_cp.doFinal(data);  
+       return bOut;  
+   }  
+   /** 
+    * ECB解密 
+    * @return 明文 
+    */  
+   public synchronized static byte[] des3DecodeECB( byte[] data)  
+           throws Exception {  
+       byte[] bOut = TripleDES_cp_decode.doFinal(data);  
+       return bOut;  
+   }  
+   
+   
+   /**
+	 * 电子雷管-数据帧解密
+	 * @参数： @param res
+	 * @参数： @return   
+	 * @返回值： byte[]  
+	 * @throws Exception 
+	 */
+	public static byte[] decodeData(byte[] b) throws Exception {
+		//解析从第7位字节开始的3DES加密串
+		byte temp [] = new byte[b.length-7];
+		System.arraycopy(b, 7, temp, 0, b.length-7);
+		byte[] c = SecretUtils.des3DecodeECB(temp);
+		byte  d [] = new byte[c.length + 7];
+		System.arraycopy(b, 0, d, 0, 7);
+		System.arraycopy(c, 0, d, 7, c.length);
+		return d;
+	}
+	
+	/**
+	 * 添加数据头
+	 * @参数： @param b
+	 * @参数： @return   
+	 * @返回值： byte[]  
+	 * @param dataType 
+	 */
+	public static byte[] encodeData(byte[] b, int dataType) {
+		//数据头
+		byte []tempRes = new byte[7];
+		byte [] dataLength = int2bytes(b.length);
+		tempRes[0] = 68;
+		tempRes[1] = 76;
+		tempRes[2] = (byte) dataType;
+		
+		//数据总长度
+		tempRes[3] = (byte) dataLength[0];
+		tempRes[4] = (byte) dataLength[1];
+		tempRes[5] = (byte) dataLength[2];
+		tempRes[6] = (byte) dataLength[3];
+		byte[] res = new byte[b.length+tempRes.length];
+		System.arraycopy(tempRes, 0, res, 0, 7);
+		System.arraycopy(b, 0, res, 7, b.length);
+		return res;
+	}
+
+   
+   public  static void main(String[] args) throws Exception {  
+       byte[] data = {0x08,(byte) 0xf8,(byte) 0xc0,0x24,0x3d,0x0e,(byte) 0xa8,(byte) 0xbc,0x15,0x4c,0x67,0x23,(byte) 0xff};
+       System.out.println("ECB加密解密");  
+       byte[] str3 = des3EncodeECB(data );  
+       byte[] str4 = des3DecodeECB(str3);  
+       for(byte b : str3){
+    	   System.out.print(b+" ");
+       }  
+       System.out.println(); 
+       System.out.println(new String(str4, "UTF-8"));  
+       byte []b1 = int2bytes(67000);
+       for(byte b : b1){
+    	   System.out.print(b+" ");
+       } 
+   }  
+   
+   public static byte[] int2bytes(int num) {  
+	    byte[] b = new byte[4];  
+	    for (int i = 0; i < 4; i++) {  
+	        b[i] = (byte) (num >>> (24 - i * 8));  
+	    }  
+	    return b;  
+	} 
+}

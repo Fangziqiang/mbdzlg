@@ -1,0 +1,112 @@
+package com.jadlsoft.struts.action.dzlg;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.jit.util.Base64;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import net.sf.json.util.JSONUtils;
+
+import org.apache.log4j.Logger;
+
+import com.core.utils.SpringBeanFactory;
+import com.jadlsoft.business.dzlg.DzlgManager;
+import com.jadlsoft.business.dzlg.DzlgParseUtil;
+import com.jadlsoft.domain.DzlgReqBean;
+import com.jadlsoft.utils.JsonUtil;
+import com.jadlsoft.utils.JsonUtils;
+import com.jadlsoft.utils.MBDZLGConstant;
+import com.jadlsoft.utils.TripleDES3_DzlgMmxz;
+/**
+ * 
+ *  电子雷管离线请求【http】
+ * @author wujiaxu
+ * @Time 2017-7-31 下午4:07:45
+ *
+ */
+public class JsonMmlxxzAction extends HttpServlet {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private static Logger logger = Logger.getLogger(JsonMmlxxzAction.class);
+	public void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		this.doPost(request, response);
+	}
+	public void doPost(HttpServletRequest request, HttpServletResponse response)
+		throws ServletException, IOException {
+		String str = null;
+		response.setCharacterEncoding("utf-8");
+		PrintWriter out = response.getWriter();
+		DzlgManager dzlgManager = (DzlgManager) SpringBeanFactory.getBean("dzlgManager");
+		String param = request.getParameter("param");
+		//获取加密的请求参数
+		if(param == null || "".equals(param)){
+			Map map = new HashMap();
+			map.put("cwxx", MBDZLGConstant.ERROR_REQ+"");
+			JSONObject jsObj = JSONObject.fromObject(map);
+			str = Base64.encode(TripleDES3_DzlgMmxz.encode(jsObj.toString()));
+			logger.info("===============【离线下载】参数为空——>"+MBDZLGConstant.SYSTEMINFO+"返回数据："+jsObj.toString());
+			out.print(str);
+		}
+		DzlgReqBean dzlgReqBean = null;
+		try {
+			//解密
+			param = TripleDES3_DzlgMmxz.decode(Base64.decode(param));
+			Map map = JsonUtils.getMap4Json(param);
+			 // 读取请求内容
+			String sbbh = (String) map.get("sbbh");
+			String htid = (String) map.get("htid");
+			String xmbh = (String) map.get("xmbh");
+			String xtm = (String) map.get("xtm");
+			String htm = (String) map.get("htm");
+			String fbh = (String) map.get("fbh");
+			String dwdm = (String) map.get("dwdm");
+		
+			 // 读取请求内容
+			/*String sbbh = request.getParameter("sbbh");
+			String htid = request.getParameter("htid");
+			String xmbh = request.getParameter("xmbh");
+			String xtm = request.getParameter("xtm");
+			String htm = request.getParameter("htm");
+			String fbh = request.getParameter("fbh");
+			String dwdm = request.getParameter("dwdm");*/
+		
+			/**
+			 * 1、封装数据
+			 */
+			dzlgReqBean = DzlgParseUtil.packHttpMmlxxz(sbbh,htid, xmbh, dwdm, xtm, htm, fbh);
+		
+			/**
+			 * 2、向网络服务平台请求
+			 */
+		
+			 str = (String) dzlgManager.reqToWlfwpt(dzlgReqBean);
+		} catch (Exception e) {
+			logger.error("***************【离线下载】——>"+MBDZLGConstant.SYSTEMINFO+"处理出错！",e);
+			Map map = new HashMap();
+			map.put("cwxx", MBDZLGConstant.ERROR_REQ+"");
+			JSONObject jsObj = JSONObject.fromObject(map);
+			str = Base64.encode(TripleDES3_DzlgMmxz.encode(jsObj.toString()));
+		}
+		/**
+		 * 3、返回结果
+		 */
+		logger.info("===============【离线下载】——>"+MBDZLGConstant.SYSTEMINFO+"返回数据："+str);
+		out.print(str);
+	
+		//保存申请记录
+		//YhfwManager yhfwManager = (YhfwManager) SpringBeanFactory.getBean("yhfwManager");
+		//yhfwManager.saveHttpSqInfo(dzlgReqBean,str);
+	}
+}

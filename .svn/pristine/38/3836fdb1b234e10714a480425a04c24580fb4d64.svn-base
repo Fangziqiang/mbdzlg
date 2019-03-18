@@ -1,0 +1,10 @@
+package com.jadlsoft.struts.action;
+
+import com.core.struts.action.BaseAction;
+
+public class YhfwAction extends BaseAction {
+	//	跳转到用户访问查询页面
+	public String skipyhfwyquery(){
+		return "success";
+	}
+}

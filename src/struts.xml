@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.1.7//EN"
+    "http://struts.apache.org/dtds/struts-2.1.7.dtd">
+
+<struts>
+	<package name="mbdzlgtxzx_" extends="struts-default">
+		<action name="commonlist" class="commonListAction">
+			<result name="Savelist">/save/savelist.jsp</result>
+			<result name="Continue">/save/saveselectlist.jsp</result>
+			<result name="Commonlist">/common/commonlist.jsp</result>
+			<result name="success">/common/commonlist.jsp</result>
+		</action>
+        <action name="validateCode/validateCodeAction" method="validateCode" class="validateCodeAction">
+        </action>
+		<action name="commonsuccess" class="commonsuccessAction">
+			<result type="redirect">/save/commonsuccess.jsp</result>
+		</action>
+	</package>
+	<package name="sys_default" extends="mbdzlgtxzx_" >
+	
+	    <action name="search/search" class="searchAction">
+			<result name="success">/search/searchresult.jsp</result>
+			<result name="successMethod">/search/searchresultmethod.jsp</result>
+			<result name="successMulti">/search/searchresultmulti.jsp</result>
+			<result name="successMultitwo">/search/searchresultmultitwo.jsp</result>
+		</action>
+		<action name="testusersearch/testUserSearch" class="testUserSearchAction">
+			<result name="success">/search/searchresult.jsp</result>
+			<result name="successMethod">/search/searchresultmethod.jsp</result>
+			<result name="successMulti">/search/searchresultmulti.jsp</result>
+			<result name="successMultitwo">/search/searchresultmultitwo.jsp</result>
+		</action>
+	</package>
+
+	<package name="login" extends="struts-default" namespace="/login">
+		<action name="loginAction_*" method="{1}" class="com.jadlsoft.struts.action.LoginAction">
+			<result name="fwsjlist" type="redirect">/yhfw/yhfwlist.action</result>
+			<result name="fail">/index.jsp</result>
+		</action>
+	</package>
+	<package name="yhfw" extends="struts-default" namespace="/yhfw">
+		<action name="yhfwAction_*" method="{1}" class="com.jadlsoft.struts.action.YhfwAction">
+			<result name="yhfwqqcs">/yhfw/yhfwqqcs.jsp</result>
+			<result name="lgxxList">/yhfw/lgxxList.jsp</result>
+			<result name="yhfwfhsj">/yhfw/yhfwfhsj.jsp</result>
+			<result name="zbqy">/yhfw/zbqy.jsp</result>
+			<result name="jbqy">/yhfw/jbqy.jsp</result>
+			<result name="fhlgxxList">/yhfw/fhlgxxList.jsp</result>
+		</action>
+	</package>
+	
+	
+</struts>

@@ -1,0 +1,245 @@
+package com.jadlsoft.utils;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class MBDZLGConstant {
+	
+	/**
+	 * 访问类型
+	 */
+	public static final int DATATYPE_ZXXZ_INP_JS = 7;	//socket密码在线下载（简式）
+	public static final int DATATYPE_ZXXZ_INP_FS = 1;	//socket密码在线下载（复式）
+	public static final int DATATYPE_LXXZ_INP_JS = 19;	//socket密码离线下载（简式）
+	public static final int DATATYPE_LXXZ_INP_FS = 3; 	//socket密码离线下载（复式）
+	public static final int DATATYPE_GXGZ_INP =    5; 	//socket更新准爆、禁爆规则
+	public static final int DATATYPE_QBQWZSB_INP = 9; 	//socket起爆器位置上报
+	public static final int DATATYPE_SYXXSB_INP  = 17; 	//socket使用信息上报
+	
+	public static final int DATATYPE_HTTP_ZZXZ = 21;	//http密码在线下载
+	public static final int DATATYPE_HTTP_LXXZ = 22;	//http密码离线下载
+	public static final int DATATYPE_HTTP_QBQWZSB = 23;	//http起爆器位置上报
+	public static final int DATATYPE_HTTP_SYXXSB = 24;	//http使用信息上报
+	public static final int DATATYPE_HTTP_GXGZ = 25;		//http更新规则
+	
+	/**
+	 * 返回类型
+	 */
+	public static final int DATATYPE_ZXXZ_OUT_JS = 8;	//密码在线下载（简式）
+	public static final int DATATYPE_ZXXZ_OUT_FS = 2;	//密码在线下载（复式）
+	public static final int DATATYPE_LXXZ_OUT_JS = 20;	//密码离线下载（简式）
+	public static final int DATATYPE_LXXZ_OUT_FS = 4;	//密码离线下载（复式）
+	public static final int DATATYPE_GXGZ_OUT =    6; 	//更新准爆、禁爆规则
+	public static final int DATATYPE_QBQWZSB_OUT = 16; 	//起爆器位置上报
+	public static final int DATATYPE_SYXXSB_OUT  = 18; 	//使用信息上报
+	
+	/**
+	 *接口访问类型
+	 */
+	public static final String JKLX_HTTP = "http";	//http访问
+	public static final String JKLX_SOCKET = "socket";	//socket访问
+	
+	/**
+	 * 访问类型与返回类型对应关系
+	 */
+	public static final Map DATATYPE_RETURN = new HashMap();
+	static{
+		DATATYPE_RETURN.put(DATATYPE_ZXXZ_INP_JS, DATATYPE_ZXXZ_OUT_JS);
+		DATATYPE_RETURN.put(DATATYPE_ZXXZ_INP_FS, DATATYPE_ZXXZ_OUT_FS);
+		DATATYPE_RETURN.put(DATATYPE_LXXZ_INP_JS, DATATYPE_LXXZ_OUT_JS);
+		DATATYPE_RETURN.put(DATATYPE_LXXZ_INP_FS, DATATYPE_LXXZ_OUT_FS);
+		DATATYPE_RETURN.put(DATATYPE_GXGZ_INP, DATATYPE_GXGZ_OUT);
+		DATATYPE_RETURN.put(DATATYPE_QBQWZSB_INP, DATATYPE_QBQWZSB_OUT);
+		DATATYPE_RETURN.put(DATATYPE_SYXXSB_INP, DATATYPE_SYXXSB_OUT);
+	}
+	
+	/**
+	 * 访问类型描述
+	 */
+	public static final String HTTP_LXXZ = "http离线下载密码";
+	public static final String HTTP_ZXXZ = "http在线下载密码";
+	public static final String HTTP_WEZB = "http位置上报";
+	public static final String HTTP_SYSB = "http使用上报";
+	public static final String HTTP_GXGZ = "http更新规则";
+	public static final String SOCKET_ZXXZ_FS = "socket复式在线下载密码";
+	public static final String SOCKET_ZXXZ_JS = "socket简式在线下载密码";
+	public static final String SOCKET_LXXZ_FS = "socket复式离线下载密码";//默认
+	public static final String SOCKET_LXXZ_JS = "socket简式离线下载密码";
+	public static final String SOCKET_GZGX = "socket更新规则";
+	public static final String SOCKET_WZSB = "socket位置上报";
+	public static final String SOCKET_SYSB = "socket使用上报";
+	
+	
+	
+	/*
+	 * 返回信息解析
+	 */
+	public static final String FH_SYSB_TRUE = "成功";
+	public static final String FH_SYSB_FAIL = "失败";
+	
+	public static final String FH_ERROR_JX_0 = "成功";
+	public static final String FH_ERROR_JX_1 = "非法的申请信息";
+	public static final String FH_ERROR_JX_2 = "未找到该起爆器设备信息";
+	public static final String FH_ERROR_JX_3 = "该起爆器未设置作业任务";
+	public static final String FH_ERROR_JX_4 = "起爆器在黑名单中";
+	public static final String FH_ERROR_JX_5 = "起爆位置不在起爆区域内";
+	public static final String FH_ERROR_JX_6 = "起爆位置在禁爆区域内";
+	public static final String FH_ERROR_JX_7 = "该起爆器已注销/报废";
+	public static final String FH_ERROR_JX_8 = "禁爆任务";
+	public static final String FH_ERROR_JX_SOCKET_9 = "离线下载不支持生产厂家试爆";
+	public static final String FH_ERROR_JX_HTTP_9 = "作业合同存在项目";
+	public static final String FH_ERROR_JX_SOCKET_10 = "起爆器未设置准爆区域";
+	public static final String FH_ERROR_JX_HTTP_10 = "营业性单位必须设置合同或者项目";
+	public static final String FH_ERROR_JX_SOCKET_11 = "离线下载雷管数量超过限制（1000）";
+	public static final String FH_ERROR_JX_HTTP_11 = "离线下载不支持生产厂家试爆";
+	public static final String FH_ERROR_JX_12 = "该作业任务在禁爆区域";
+	public static final String FH_ERROR_JX_99 = "网络连接失败";
+	//返回99+
+	public static final String FH_ERROR_JX_99_1 = "mbdzlgtxzx 与 wlfwpt网络连接失败";
+	//雷管返回信息 
+	public static final String FH_LG_ZT_TRUE = "雷管上报成功";
+	public static final String FH_LG_ZT_FAIL = "雷管上报失败";
+	public static final String FH_LG_ZT_0 = "雷管下载成功";
+	public static final String FH_LG_ZT_1 = "雷管在黑名单中";
+	public static final String FH_LG_ZT_2 = "雷管已使用";
+	public static final String FH_LG_ZT_3 = "申请的雷管UID不存在";
+	
+	public static final String FH_XX_0 = "0";//"成功";
+	public static final String FH_XX_1 = "1";//"非法的申请信息";
+	public static final String FH_XX_2 = "2";//"未找到该起爆器设备信息";
+	public static final String FH_XX_3 = "3";//"该起爆器未设置作业任务";
+	public static final String FH_XX_4 = "4";//"起爆器在黑名单中";
+	public static final String FH_XX_5 = "5";//"起爆位置不在起爆区域内";
+	public static final String FH_XX_6 = "6";//"起爆位置在禁爆区域内";
+	public static final String FH_XX_7 = "7";//"该起爆器已注销/报废";
+	public static final String FH_XX_8 = "8";//"禁爆任务";
+	public static final String FH_XX_9_S = "9";//"离线下载不支持生产厂家试爆";
+	public static final String FH_XX_9_H = "9";//"作业合同存在项目";
+	public static final String FH_XX_10_S = "10";//"起爆器未设置准爆区域";
+	public static final String FH_XX_10_H = "10";//"营业性单位必须设置合同或者项目";
+	public static final String FH_XX_11_S = "11";//"离线下载雷管数量超过限制（1000）";
+	public static final String FH_XX_11_H = "11";//"离线下载不支持生产厂家试爆";
+	public static final String FH_XX_12 = "12";//"该作业任务在禁爆区域";
+	public static final String FH_XX_99 = "99";//"wlfwpt 与 qgdzlgmmzx的网络连接失败";
+	
+	
+
+	/**
+	 * socket 连接类型   0:短连接  1:长连接  2：分包
+	 */
+	public static final int RECEIVE_MODE_SHORT  = 0;//短连接
+	public static final int RECEIVE_MODE_LONG  = 1;//长连接
+	public static final int RECEIVE_MODE_SPLIT  = 2;//分包
+	
+	/**
+	 * 电子雷管密码请求方式  2：复式  8:简式
+	 */
+	public static final int DATATYPE_F = 2;//复式
+	public static final int DATATYPE_J = 8;//简式
+	
+
+	/***************************电子雷管请求错误信息**************************/
+	/**
+	 * 成功
+	 */
+	public static final int CORRECT = 0;
+	/**
+	 * 错误信息：非法申请信息
+	 */
+	public static final int ERROR_REQ = 1;
+	
+	/**
+	 * 错误信息：起爆器未备案或未设置作业任务
+	 */
+	public static final int ERROR_NOFONDXZQH = 2;
+	
+	/**
+	 * 错误信息：起爆器【未设置作业任务】
+	 */
+	public static final int ERROR_QBQ_WSSRW = 3;
+	
+	/**
+	 * 错误信息：起爆器【黑名单】
+	 */
+	public static final int ERROR_QBQ_HMD = 4;
+	
+	/**
+	 * 错误信息：起爆器【已注销/报废】
+	 */
+	public static final int ERROR_QBQ_YZX = 7;
+	
+	/**
+	 * 错误信息：起爆器【试爆不支持离线下载】
+	 */
+	public static final int ERROR_SOCKET_QBQ_BZZSB = 9;
+	/**
+	 * 错误信息：作业合同存在项目
+	 */
+	public static final int ERROR_HTTP_ZY_HTZZXM = 9;
+
+	
+	/**
+	 * 错误信息：禁爆【区域外请求】
+	 */
+	public static final int ERROR_JB_QYWQQ  = 6;
+	
+	
+	/**
+	 * 错误信息：禁爆【任务禁爆】
+	 */
+	public static final int ERROR_JB_RWJB = 8;
+	
+	/**
+	 * 错误信息：准爆【区域外】
+	 */
+	public static final int ERROR_ZB_QYW = 5;
+	/**
+	 * 错误信息：准爆【未设置区域】
+	 */
+	public static final int ERROR_SOCKET_ZB_WSZQY = 10;
+	/**
+	 * 错误信息：营业性单位必须设置合同或者项目
+	 */
+	public static final int ERROR_HTTP_YYXDW_BXSZHTHXM = 10;
+
+	/**
+	 * 错误信息：雷管数量【离线超量下载】
+	 */
+	public static final int ERROR_SOCKET_LGSL_LXCL = 11;
+	/**
+	 * 错误信息：离线下载不支持生产厂家试爆
+	 */
+	public static final int ERROR_HTTP_LXXZ_BZCSCCJSB = 11;
+	/**
+	 * 错误信息：该作业任务在禁爆区域
+	 */
+	public static final int ERROR_ZYRW_JBQY = 12;
+	
+	
+	/**
+	 * 错误信息：网络连接失败
+	 */
+	public static final int ERROR_CONNECT = 99;
+	/**
+	 * 错误信息：【使用上报】成功
+	 */
+	public static final int ERROR_SYSB_TRUE = 0;
+	/**
+	 * 错误信息：【使用上报】失败
+	 */
+	public static final int ERROR_SYSB_FAIL = 1;
+	
+	/**
+	 * 错误信息：【http使用上报】失败
+	 */
+	public static final String ERROR_HTTPSYSB_FAIL = "fail";	//失败
+	public static final String ERROR_HTTPSYSB_TRUE = "true";	//成功
+	
+	
+	/**
+	 * 领用发放请求错误
+	 */
+	public static final String ERROR_LYFF_BWZ = "0";	//序列号或密钥为空
+	public static final String ERROR_LYFF_XLHCW = "1";	//序列号错误
+	public static final String ERROR_LYFF_WLLJSB = "2";	//网络连接失败
+}

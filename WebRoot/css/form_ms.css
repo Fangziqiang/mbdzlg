@@ -1,0 +1,136 @@
+.div_content{
+	border:1px solid #d8d8da;
+	overflow:hidden;
+	margin:6px auto 16px;
+}
+.table_01 td ,.table_02 td ,.table_03 td,.table_04 td{	
+	 border: 1px solid #fff;	
+	 vertical-align: middle;	
+	 padding-top:10px; 
+	 color: #73777B;
+}
+
+
+
+.ms_tb01,.ms_tb02,.ms_tb03{
+	width: 160px;padding-left: -10px;
+	
+}
+/* .ms_tb04{
+	width: 120px;margin-right: 5px;	
+} */
+.msmc,.msjf{
+	border: 1px solid #c8c8c8;
+
+	height: 28px;
+
+}
+.yqd_tb01{
+	border: 1px solid #c8c8c8;
+	height:68px;
+}
+.sxyj,.yjly{
+	border: 1px solid #c8c8c8;
+	height:68px;
+	width: 80%
+}
+
+
+
+.typename{
+	width: 178px;
+	color: #73777B;
+	float: left;
+	border-top: 1px solid #c8c8c8;	
+}
+
+.typename_wenzi{
+	
+	text-align: right;
+	padding-right: 15px;
+}
+
+.servicename{
+	width: 810px;
+	border: 0.5px solid #c8c8c8;
+	float: left;	
+}
+.servicename_{
+	width: 210px;
+	height: 60px;	
+	float: left;
+	padding-left: 15px;
+}
+.servicename_input{
+	width: 180px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+.textarea_width{
+}
+.input_text:focus{
+	border:red solid 2px;
+	background: red;
+	
+	}
+.button{
+	width: 50px;
+	height: 28px;
+	margin-left: 10px;
+	
+}
+.button_{
+	width: 50px;
+	height: 28px;
+	margin-left: 11px;
+	color: #73777B;
+}
+
+
+/* .input_text{
+	border: 1px solid #c8c8c8;
+	height: 28px;
+	vertical-align: middle;
+	line-height: 28px;	
+	background: #fff;
+		
+	color: #666;	
+	padding-left: 5px;	
+	-webkit-border-radius: 2px;	
+	-moz-border-radius: 2px;	
+	border-radius: 2px;
+}
+.bk1{
+	border: 1px solid red;
+	height: 28px;
+	vertical-align: middle;
+	line-height: 28px;	
+	background: #fff;
+	color: #666;	
+	padding-left: 5px;	
+	-webkit-border-radius: 2px;	
+	-moz-border-radius: 2px;	
+	border-radius: 2px;
+} */
+
+
+
+
+
+
+
+
+
+
+
+

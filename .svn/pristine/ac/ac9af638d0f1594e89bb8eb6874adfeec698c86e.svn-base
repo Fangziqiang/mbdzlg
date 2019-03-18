@@ -1,0 +1,77 @@
+package com.jadlsoft.struts.action.dzlg;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+
+import com.core.utils.SpringBeanFactory;
+import com.jadlsoft.business.dzlg.DzlgManager;
+import com.jadlsoft.business.dzlg.DzlgParseUtil;
+import com.jadlsoft.domain.DzlgParseHelper;
+import com.jadlsoft.domain.DzlgReqBean;
+import com.jadlsoft.utils.MBDZLGConstant;
+/**
+ * 
+ *  电子雷管离线请求【http】
+ * @author wujiaxu
+ * @Time 2017-7-31 下午4:07:45
+ *
+ */
+public class JsonMmlxxzAction extends HttpServlet {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private static Logger logger = Logger.getLogger(JsonMmlxxzAction.class);
+	private DzlgManager dzlgManager = (DzlgManager) SpringBeanFactory.getBean("dzlgManager");
+	
+	public void doPost(HttpServletRequest request, HttpServletResponse response)
+		throws ServletException, IOException {
+		
+		String str = null;
+		response.setCharacterEncoding("utf-8");
+		PrintWriter out = response.getWriter();
+		
+		 // 读取请求内容
+		String sbbh = request.getParameter("sbbh");
+		String htid = request.getParameter("htid");
+		String xmbh = request.getParameter("xmbh");
+		String xtm = request.getParameter("xtm");
+		String htm = request.getParameter("htm");
+		String fbh = request.getParameter("fbh");
+		DzlgReqBean dzlgReqBean = null;
+		/**
+		 * 1、获取信息
+		 */
+		try {
+			//1.1、封装数据
+			dzlgReqBean = DzlgParseUtil.packHttpMmlxxz(sbbh,htid, xmbh, xtm, htm, fbh);
+		
+			//1.2、向网络服务平台请求
+			dzlgManager.reqToWlfwpt(dzlgReqBean);
+		
+		} catch (Exception e) {
+			logger.error("***************【离线下载】——>"+MBDZLGConstant.SYSTEMINFO+"处理出错！",e);
+			dzlgReqBean.setError(MBDZLGConstant.ERROR_REQ);
+		}
+		/**
+		 * 2、返回信息
+		 */
+		
+		//2.1、组装信息
+		str = (String) DzlgParseHelper.makeReMsg(dzlgReqBean);
+		//2.2、加密返回
+		out.print(DzlgParseHelper.encode_http(str));
+	}
+	
+	public void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		this.doPost(request, response);
+	}
+}

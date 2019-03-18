@@ -1,0 +1,327 @@
+package com.jadlsoft.socket;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
+import com.jadlsoft.business.BaseManager;
+import com.jadlsoft.business.dzlg.DzlgManager;
+import com.jadlsoft.utils.DateUtils;
+import com.jadlsoft.utils.HexUtil;
+import com.jadlsoft.utils.SecretUtils;
+import com.jadlsoft.utils.SpringBeanFactory;
+
+public class DzlgSyxxsbManager extends BaseManager implements Runnable {
+	private static Logger logger = Logger.getLogger(DzlgSyxxsbManager.class);
+	
+	private Socket socket;
+	private int delayTime = 100000;
+
+	public DzlgSyxxsbManager(Socket socket) {
+		this.socket = socket;
+	}
+	
+	public void run() {
+		while (!socket.isClosed()) {
+			logger.info("-------电子雷管使用信息上报socket服务开始!-------");
+			Date ljdate = DateUtils.getCurrentDate("yyyy-MM-dd HH:mm:ss");
+			byte[] res = null;
+			InputStream is = null;
+			OutputStream os = null;
+			try {
+				socket.setKeepAlive(true);
+				socket.setSoTimeout(delayTime);
+				socket.setSoLinger(true, 0);
+				//1.读取客服端请求信息
+				is = socket.getInputStream();
+				int count = 0; 
+				int rc = 0;
+				int len = 0;
+				int dataLength = 0;
+				int sum = 0;
+				byte[] resltByte = new byte[]{};
+				//处理分包
+				do{
+					while (count == 0) { 
+						count = is.available(); 
+						if(DateUtils.getCurrentDate("yyyy-MM-dd HH:mm:ss").getTime()-ljdate.getTime() > 20*1000){
+	                       logger.info("超时未接收到数据，socket连接关闭！");
+	                       this.closeSocket();
+	                       return;
+						}
+					} 
+					//重置计数
+					ljdate = DateUtils.getCurrentDate("yyyy-MM-dd HH:mm:ss");
+					
+					byte[] b = new byte[count]; 
+					sum ++;
+					len = is.read(b);
+					rc += len;
+					resltByte = byteMerger(resltByte, b);
+					if(sum == 1){
+						//数据头
+						int dataTitle = HexUtil.convertBytes(b, 0, 2);
+						if(dataTitle != 6876){
+	                        logger.info("非法请求socket连接关闭");
+	                        return;
+						}
+						//数据总长度		（4字节）
+						dataLength = HexUtil.bytesToInt2(b, 3)+7;//包含数据头
+						logger.info("接收数据帧总长度："+dataLength);
+					}
+					logger.info("第"+sum+"数据包数据长度："+count);
+					count = 0;
+				}while(dataLength != rc);
+				//2.数据帧解密
+				resltByte = SecretUtils.decodeData(resltByte);
+				//3.请求电子雷管下载密码
+				res = getDzlgqbmmxx(resltByte);
+				if(res.length == 1){
+					//4.数据帧加密
+					res = SecretUtils.encodeData(res,18);
+				}
+				
+				//5.请求结果返回客户端
+				os = socket.getOutputStream();
+				os.write(res);
+				os.flush();
+				if(res != null && (res[1] == 2 || res[7] ==2)){
+					Thread.sleep(3000);//等待3秒钟，起爆器接收到数据再关闭连接
+					//6.关闭资源
+					os.close();
+					is.close();
+				}
+			} catch (Exception e) {
+				this.closeSocket();
+				logger.info("服务器run处理电子雷管使用信息上报异常！", e);
+			} finally {
+				if(res != null && (res[1] == 2 || res[7] ==2)){
+					this.closeSocket();
+				}
+				logger.info("-------电子雷管使用信息上报服务结束！-------");
+			}
+		}
+	}
+	
+	/**
+	 * 
+	 * 关闭socket连接
+	 * @author wujiaxu
+	 * @param os 
+	 * @param is 
+	 * @Time 2017-5-5 上午9:35:56
+	 */
+	private void closeSocket() {
+		try {
+	
+			if (this.socket != null) {   
+				socket.close();   
+				logger.info("socket连接关闭");
+	        }
+		} catch (IOException e) {
+			logger.error("服务器关闭socket异常！", e);
+		}
+	}
+
+	/**
+	 * 根据起爆器请求信息获取电子雷管起爆密码
+	 * @throws Exception 
+	 * @参数：@param b
+	 * @参数：@return
+	 * @返回值：byte[]
+	 */
+	private byte[] getDzlgqbmmxx(byte[] b) throws Exception {
+		DzlgManager dzlgManager = (DzlgManager) SpringBeanFactory.getBean("dzlgManager");
+		if(b == null || b.length <= 0){
+			return null;
+		}
+		/**
+		 * 1.解析请求信息
+		 */
+		Map map =  parseDzlgSyxxsbMsg(b);
+//		Map map = new HashMap();
+//		map.put("qbqbh", "cs002");
+//		map.put("jd", 113.3z88);
+//		map.put("wd", 27.801);
+//		map.put("bpsj", "2016-08-16 09:22:55");
+//		map.put("bprysfz", 1111);
+//		List uidList = new ArrayList();
+//		uidList.add("6060720000104");
+//		map.put("uidList", uidList);
+//		map.put("dataType", 11);
+//		map.put("dwdm", 11);
+		/**
+		 * 2.创建请求XMl文件
+		 */
+		String strXml = dzlgManager.createXml(map);
+		/**
+		 * 调用webservice访问网络服务平台
+		 */
+		logger.info("********************************");
+		logger.info("Socket使用上报");
+		logger.info("起爆器编号："+map.get("qbqbh"));
+		logger.info("单位代码："+map.get("dwdm"));
+		logger.info("经度："+map.get("jd"));
+		logger.info("纬度："+map.get("wd"));
+		logger.info("雷管共"+((List)map.get("uidList")).size()+"发");
+		byte[] res = (byte[]) dzlgManager.getSocketReturnValue(strXml,map);
+		for (int i = 0; i < res.length; i++) {
+			logger.info(res[i]+" ");
+		}
+		logger.info("********************************");
+		return res;
+	}
+
+
+	/**
+	 * 1.解析电子雷管使用信息请求数据
+	 * @参数： @param b
+	 * @参数： @return   
+	 * @throws
+	 */
+	private Map parseDzlgSyxxsbMsg(byte[] b) {
+		if(b == null || "".equals(b)){
+			return null;
+		}
+		int dataIndex = 0;
+		
+		//1.数据头			（2字节）
+		int dataTitle = HexUtil.convertBytes(b, 0, 2);
+		dataIndex += 2;
+		//2.数据类型			（1字节）
+		int dataType= HexUtil.convertBytes(b,dataIndex, 1);
+		dataIndex += 1;
+		//3.数据总长度		（4字节）
+		int dataLength = b.length-7;
+		dataIndex += 4;
+		//4.起爆器设备编号长度	（1字节）
+		int qbqsbbhLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//5.起爆器设备编号		（qbqsbbhLength字节）
+		String qbqsbbh = String.valueOf(HexUtil.convertASCBytesToString(b, dataIndex, qbqsbbhLength));
+		dataIndex += qbqsbbhLength;
+		//6.经度长度			（1字节）
+		int jdLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//7.经度				（jdLength字节）
+		String jd = String.valueOf(HexUtil.convert4BytesToString(b, dataIndex, jdLength));
+		dataIndex += jdLength;
+		//8.纬度长度			（1字节）
+		int wdLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//9.纬度				（wdLength字节）
+		String wd = String.valueOf(HexUtil.convert4BytesToString(b, dataIndex, wdLength));
+		dataIndex += wdLength;
+		//4.爆破时间长度                    （1字节）
+		int bpsjLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//5.爆破时间                    	（bpsjLength字节）
+//		String bpsj = String.valueOf(HexUtil.convertBytes(b, dataIndex, bpsjLength));
+//		dataIndex += bpsjLength;
+		StringBuffer bpsj = new StringBuffer();
+		for (int i = 0; i < bpsjLength; i++) {
+			String temp = String.valueOf(HexUtil.convertBytes(b, dataIndex, 1));
+			if(i == 0){
+				temp = 20 + temp + "-";
+			}
+			if(i == 1){
+				if(temp.length() > 1){
+					temp = temp + "-";
+				}else{
+					temp = 0+temp+"-";
+				}
+			}
+			if(i == 2){
+				if(temp.length() > 1){
+					temp = temp + " ";
+				}else{
+					temp = 0+temp+" ";
+				}
+			}
+			if(i == 3){
+				if(temp.length() > 1){
+					temp = temp + ":";
+				}else{
+					temp = 0+temp+":";
+				}
+			}
+			if(i == 4){
+				if(temp.length() > 1){
+					temp = temp + ":";
+				}else{
+					temp = 0 + temp + ":";
+				}
+			}
+			if(i == 5){
+				if(temp.length() > 1){
+					temp = temp;
+				}else{
+					temp = 0+temp;
+				}
+			}
+			bpsj.append(temp);
+			dataIndex++;
+		}
+		//6.爆破人员身份证长度       (1字节）
+		int bprysfzLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//7.爆破人员身份证                    （bprysfzLength字节）
+		String bprysfz = HexUtil.convertASCBytesToString(b, dataIndex, bprysfzLength);
+		dataIndex += bprysfzLength;
+		//8.申请密码的雷管UID码个数		（1字节）
+		int uidCount = b[dataIndex]* 256+(b[dataIndex+1] < 0 ? b[dataIndex+1]+256:b[dataIndex+1]);
+		dataIndex += 2;
+		//9.申请密码的雷管UID码内容总长度	（1字节）
+		int uidListTotalLength = HexUtil.convertBytes(b, dataIndex, 2);
+		dataIndex += 2;
+		//10.雷管UID码数据块	（uidListTotalLength字节）
+		List uidList = new ArrayList();
+		for(int i = 0 ; i < uidCount ; i++){
+			int uidLength = HexUtil.convertBytes(b, dataIndex, 1);
+			dataIndex += 1;
+			String uid = String.valueOf(HexUtil.convertASCBytesToString(b, dataIndex, uidLength));
+			dataIndex += uidLength;
+			uidList.add(uid);
+		}
+		//11.单位代码长度		（1字节）
+		int dwdmLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//12.单位代码			（dwdmLength字节）
+		String dwdm = HexUtil.convertASCBytesToString(b, dataIndex, dwdmLength);
+		dataIndex += dwdmLength;
+		Map map = new HashMap();
+		map.put("dataType", dataType);
+		map.put("qbqbh", qbqsbbh);
+		map.put("jd", jd);
+		map.put("wd", wd);
+		map.put("bpsj", bpsj.toString());
+		map.put("bprysfz", bprysfz);
+		map.put("uidList", uidList);
+		map.put("dwdm", dwdm);
+		return map;
+	}
+	
+	/**
+	 * 合并两个字节数组
+	 * @param byte_1
+	 * @param byte_2
+	 * @return
+	 * @author niutongda
+	 * @Time 2017-3-22 上午11:34:11 
+	 *
+	 */
+	private static byte[] byteMerger(byte[] byte_1, byte[] byte_2){  
+        byte[] byte_3 = new byte[byte_1.length+byte_2.length];  
+        System.arraycopy(byte_1, 0, byte_3, 0, byte_1.length);  
+        System.arraycopy(byte_2, 0, byte_3, byte_1.length, byte_2.length);  
+        return byte_3;  
+    }  
+}

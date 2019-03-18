@@ -1,0 +1,133 @@
+package com.jadlsoft.listener;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+
+import org.apache.log4j.Logger;
+
+import com.jadlsoft.business.dzlg.DzlgSocketManager;
+import com.jadlsoft.utils.DzlgMbconstant;
+import com.jadlsoft.utils.SocketMultiThreadUtils;
+/**
+ * socket通讯监听器
+ *
+ */
+public class DzlgSocketListener implements ServletContextListener{
+	private static Logger log = Logger.getLogger(DzlgSocketListener.class);
+	private ExecutorService executor;	//线程池管理
+	
+	private SocketMultiThreadUtils thread_dzlgmmxz;		//密码在线下载线程
+	private SocketMultiThreadUtils thread_dzlgmmlxxz;	//密码离线下载线程
+	private SocketMultiThreadUtils thread_dzlggzgx;		//更新准爆、禁爆规则线程
+	private SocketMultiThreadUtils thread_dzlgqbqwzsb;	//起爆器位置上报线程
+	private SocketMultiThreadUtils thread_dzlgsyxxsb;	//电子雷管使用信息上报线程
+	
+	private static final int PORT_DZLGMMXZ = 6082;		//密码在线下载socket端口
+	private static final int PORT_DZLGMMLXXZ = 6083;	//密码离线下载socket端口
+	private static final int PORT_DZLGGZGX = 6084;		//更新准爆、禁爆规则socket端口
+	private static final int PORT_DZLGQBQWZSB = 6085;	//起爆器位置上报socket端口
+	private static final int PORT_DZLGSYXXSB = 6086;	//电子雷管使用信息上报socket端口
+	
+
+
+	public void contextDestroyed(ServletContextEvent contextEvent) {
+		// 随tomcat关闭结束服务器跟java客户端之间的socket监听
+		log.info("关闭socket服务端！");
+		thread_dzlgmmxz.stopService();
+		thread_dzlgmmlxxz.stopService();
+		thread_dzlggzgx.stopService();
+		thread_dzlgqbqwzsb.stopService();
+		thread_dzlgsyxxsb.stopService();
+		thread_dzlgmmxz.stop();
+		thread_dzlgmmlxxz.stop();
+		thread_dzlggzgx.stop();
+		thread_dzlgqbqwzsb.stop();
+		thread_dzlgsyxxsb.stop();
+		executor.shutdown();
+	}
+
+	public void contextInitialized(ServletContextEvent contextEvent) {
+		executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()* 30);//建立线程池
+		startThread_dzlgmmxz();
+		startThread_dzlgmmlxxz();
+		startThread_dzlggzgx();
+		startThread_dzlgqbqwzsb();
+		startThread_dzlgsyxxsb();
+	}
+
+	
+	
+	
+	/**
+	 * 1.开启电子雷管密码下载线程
+	 * @参数：
+	 * @返回值：void
+	 */
+	private void startThread_dzlgmmxz() {
+		String describe = "【电子雷管在线密码下载】";
+		thread_dzlgmmxz = new SocketMultiThreadUtils(executor,PORT_DZLGMMXZ,DzlgMbconstant.RECEIVE_MODE_SHORT,DzlgSocketManager.class,"mmxz_zx",describe);//实例化
+		thread_dzlgmmxz.setName("Dzlg_mmxz_zx");
+		thread_dzlgmmxz.setDaemon(true);//设置为守护线程
+		thread_dzlgmmxz.start();//运行线程
+		
+	}
+	
+	/**
+	 * 2.开启电子雷管密码离线下载线程
+	 * @参数：
+	 * @返回值：void
+	 */
+	private void startThread_dzlgmmlxxz() {
+		String describe = "【电子雷管离线密码下载】";
+		thread_dzlgmmlxxz = new SocketMultiThreadUtils(executor,PORT_DZLGMMLXXZ,DzlgMbconstant.RECEIVE_MODE_SPLIT ,DzlgSocketManager.class,"mmxz_lx",describe);//实例化
+		thread_dzlgmmlxxz.setName("Dzlg_mmxz_lx");
+		thread_dzlgmmlxxz.setDaemon(true);//设置为守护线程
+		thread_dzlgmmlxxz.start();//运行线程
+		
+	}
+	
+	/**
+	 * 3.开启准爆、禁爆规则更新线程
+	 * @参数：
+	 * @返回值：void
+	 */
+	private void startThread_dzlggzgx() {
+		String describe = "【电子雷管准爆、禁爆规则更新】";
+		thread_dzlggzgx = new SocketMultiThreadUtils(executor,PORT_DZLGGZGX,DzlgMbconstant.RECEIVE_MODE_SHORT ,DzlgSocketManager.class,"gxgz",describe);//实例化
+		thread_dzlggzgx.setName("Dzlg_gzgx");
+		thread_dzlggzgx.setDaemon(true);//设置为守护线程
+		thread_dzlggzgx.start();//运行线程
+	}
+	
+	/**
+	 * 4.开启起爆器位置上报线程
+	 * @参数：
+	 * @返回值：void
+	 */
+	private void startThread_dzlgqbqwzsb() {
+		String describe = "【电子雷管起爆器位置上报】";
+		thread_dzlgqbqwzsb = new SocketMultiThreadUtils(executor,PORT_DZLGQBQWZSB,DzlgMbconstant.RECEIVE_MODE_SHORT ,DzlgSocketManager.class,"qbqwzsb",describe);//实例化
+		thread_dzlgqbqwzsb.setName("Dzlg_qbqwzsb");
+		thread_dzlgqbqwzsb.setDaemon(true);//设置为守护线程
+		thread_dzlgqbqwzsb.start();//运行线程
+		
+	}
+	
+	/**
+	 * 5.开启电子雷管使用信息上报线程
+	 * @参数：
+	 * @返回值：void
+	 */
+	private void startThread_dzlgsyxxsb() {
+		String describe = "【电子雷管使用上报】";
+		thread_dzlgsyxxsb = new SocketMultiThreadUtils(executor,PORT_DZLGSYXXSB,DzlgMbconstant.RECEIVE_MODE_SHORT ,DzlgSocketManager.class,"syxxsb",describe);//实例化
+		thread_dzlgsyxxsb.setName("Dzlg_syxxsb");
+		thread_dzlgsyxxsb.setDaemon(true);//设置为守护线程
+		thread_dzlgsyxxsb.start();//运行线程
+		
+	}
+	
+}

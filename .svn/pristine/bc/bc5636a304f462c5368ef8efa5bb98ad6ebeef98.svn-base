@@ -1,0 +1,666 @@
+package com.jadlsoft.business.dzlg;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.jadlsoft.domain.DzlgReqBean;
+import com.jadlsoft.utils.HexUtil;
+import com.jadlsoft.utils.MBDZLGConstant;
+/**
+ * 
+ * 电子雷管解析工具
+ * @author wujiaxu
+ * @Time 2017-7-4 下午5:06:11
+ *
+ */
+public class DzlgParseUtil {
+
+	/**
+	 * 解析电子雷管密码下载【在线】
+	 * @param b
+	 * @return
+	 * @author wujiaxu
+	 * @Time 2017-7-4 下午5:05:31
+	 */
+	public static DzlgReqBean parseMmxzOnline(byte[] b) {
+		if(b == null || b.length <= 0){
+			return  new DzlgReqBean();
+		}
+		
+		int dataIndex = 0;
+		//1.数据头			（2字节）
+		int dataTitle = HexUtil.convertBytes(b, 0, 2);
+		dataIndex += 2;
+		//2.数据类型			（1字节）
+		int dataType= HexUtil.convertBytes(b,dataIndex, 1);
+		dataIndex += 1;
+		//3.数据总长度		（4字节）
+		int dataLength = HexUtil.convertBytes(b, dataIndex, 4);
+		dataIndex += 4;
+		//4.起爆器设备编号长度	（1字节）
+		int qbqsbbhLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//5.起爆器设备编号		（qbqsbbhLength字节）
+		String qbqsbbh = String.valueOf(HexUtil.convertASCBytesToString(b, dataIndex, qbqsbbhLength));
+		dataIndex += qbqsbbhLength;
+		//6.经度长度			（1字节）
+		int jdLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//7.经度				（jdLength字节）
+		String jd = String.valueOf(HexUtil.convert4BytesToString(b, dataIndex, jdLength));
+		dataIndex += jdLength;
+		//8.纬度长度			（1字节）
+		int wdLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//9.纬度				（wdLength字节）
+		String wd = String.valueOf(HexUtil.convert4BytesToString(b, dataIndex, wdLength));
+		dataIndex += wdLength;
+		//10.申请密码的雷管UID码个数		（1字节）
+		int uidCount = HexUtil.convertBytes(b, dataIndex, 2);
+		dataIndex += 2;
+		//11.申请密码的雷管UID码内容总长度	（1字节）
+		int uidListTotalLength = HexUtil.convertBytes(b, dataIndex, 2);
+		dataIndex += 2;
+		//12.雷管UID码数据块	（uidListTotalLength字节）
+		List uidList = new ArrayList();
+		for(int i = 0 ; i < uidCount ; i++){
+			int uidLength = HexUtil.convertBytes(b, dataIndex, 1);
+			dataIndex += 1;
+			String uid = String.valueOf(HexUtil.convertASCBytesToString(b, dataIndex, uidLength));
+			dataIndex += uidLength;
+			uidList.add(uid);
+		}
+		//13.单位代码长度		（1字节）
+		int dwdmLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//14.单位代码			（dwdmLength字节）
+		String dwdm = HexUtil.convertASCBytesToString(b, dataIndex, dwdmLength);
+		dataIndex += dwdmLength;
+		
+		DzlgReqBean dzlgxxBean = new DzlgReqBean();
+		dzlgxxBean.setJklx(MBDZLGConstant.JKLX_SOCKET);
+		dzlgxxBean.setDataTitle(dataTitle);
+		dzlgxxBean.setDataLength(dataLength);
+		dzlgxxBean.setDataType(dataType);
+		dzlgxxBean.setJd(jd);
+		dzlgxxBean.setWd(wd);
+		dzlgxxBean.setQbqbh(qbqsbbh);
+		dzlgxxBean.setDwdm(dwdm);
+		dzlgxxBean.setUidList(uidList);
+		dzlgxxBean.setAddErrorLenth(true);
+		dzlgxxBean.setAddTitle(true);
+		dzlgxxBean.showReqLog();
+	
+		return dzlgxxBean;
+		
+	}
+	
+	/**
+	 * 解析电子雷管密码下载【离线】
+	 * @param b
+	 * @return
+	 * @author wujiaxu
+	 * @Time 2017-7-7 下午4:36:46
+	 */
+	public static DzlgReqBean parseMmxzOffline(byte[] b) {
+		if(b == null || "".equals(b)){
+			return  new DzlgReqBean();
+		}
+		
+		DzlgReqBean dzlgxxBean = new DzlgReqBean();
+		
+		int dataIndex = 0;
+		StringBuffer xtmStr = new StringBuffer("");
+		StringBuffer htmStr = new StringBuffer("");
+		StringBuffer fbhStr = new StringBuffer("");
+		//1.数据头			（2字节）
+		int dataTitle = HexUtil.convertBytes(b, 0, 2);
+		dataIndex += 2;
+		//2.数据类型			（1字节）
+		int dataType= HexUtil.convertBytes(b,dataIndex, 1);
+		dataIndex += 1;
+		//3.数据总长度		（4字节）
+		int dataLength = HexUtil.convertBytes(b, dataIndex, 4);
+		dataIndex += 4;
+		//4.箱条码个数		（1字节）
+		int xtmCount = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		if(xtmCount > 0 ){
+			//5.箱条码内容总长度	（1字节）
+			int xtmListTotalLength = HexUtil.convertBytes(b, dataIndex, 2);
+			dataIndex += 2;
+			//6.箱条码数据块	（xtmListTotalLength字节）
+			List xtmList = new ArrayList();
+			for(int i = 0 ; i < xtmCount ; i++){
+				int xtmLength = HexUtil.convertBytes(b, dataIndex, 1);
+				dataIndex += 1;
+				String xtm = String.valueOf(HexUtil.convertASCBytesToString(b, dataIndex, xtmLength));
+				dataIndex += xtmLength;
+				xtmList.add(xtm);
+			}
+			dzlgxxBean.setXtm(xtmList);
+		}
+		//7.盒条码个数		（1字节）
+		int htmCount = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		if(htmCount == 0){
+		}else{
+			//8.盒条码内容总长度	（1字节）
+			int htmListTotalLength = HexUtil.convertBytes(b, dataIndex, 2);
+			dataIndex += 2;
+			//9.盒条码数据块	（htmListTotalLength字节）
+			List htmList = new ArrayList();
+			for(int i = 0 ; i < htmCount ; i++){
+				int htmLength = HexUtil.convertBytes(b, dataIndex, 1);
+				dataIndex += 1;
+				String htm = String.valueOf(HexUtil.convertASCBytesToString(b, dataIndex, htmLength));
+				dataIndex += htmLength;
+				htmList.add(htm);
+			}
+			dzlgxxBean.setHtm(htmList);
+		}
+		//10.发编号个数		（1字节）
+		int fbhCount = b[dataIndex]* 256+(b[dataIndex+1] < 0 ? b[dataIndex+1]+256:b[dataIndex+1]);
+		dataIndex += 2;
+		if(fbhCount == 0){
+		}else{
+			//11.发编号内容总长度	（1字节）
+			int fbhListTotalLength = HexUtil.convertBytes(b, dataIndex, 2);
+			dataIndex += 2;
+			//12.发编号数据块	（htmListTotalLength字节）
+			List fbhList = new ArrayList();
+			for(int i = 0 ; i < fbhCount ; i++){
+				int fbhLength = HexUtil.convertBytes(b, dataIndex, 1);
+				dataIndex += 1;
+				String fbh = String.valueOf(HexUtil.convertASCBytesToString(b, dataIndex, fbhLength));
+				dataIndex += fbhLength;
+				fbhList.add(fbh);
+			}
+			dzlgxxBean.setFbh(fbhList);
+		}
+		//13.合同编号长度		（1字节）
+		int htidLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//14.合同编号		（htidLehgth字节）
+		String htid = String.valueOf(HexUtil.convertASCBytesToString(b, dataIndex, htidLength));
+		dataIndex += htidLength;
+		//15.项目编号长度		（1字节）
+		int xmxhLehgth = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//16.项目编号		（xmxhLength字节）
+		String xmxh = String.valueOf(HexUtil.convertASCBytesToString(b, dataIndex, xmxhLehgth));
+		dataIndex += xmxhLehgth;
+//		//14.单位代码长度		（1字节）
+//		int dwdmLength = HexUtil.convertBytes(b, dataIndex, 1);
+//		dataIndex += 1;
+//		//15.单位代码			（dwdmLength字节）
+//		String dwdm = HexUtil.convertASCBytesToString(b, dataIndex, dwdmLength);
+//		dataIndex += dwdmLength;
+		//17.起爆器编号长度		（1字节）
+		int qbqbhLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//18.起爆器编号			（dwdmLength字节）
+		String qbqbh = HexUtil.convertASCBytesToString(b, dataIndex, qbqbhLength);
+		dataIndex += qbqbhLength;
+		
+		dzlgxxBean.setJklx(MBDZLGConstant.JKLX_SOCKET);
+		dzlgxxBean.setDataTitle(dataTitle);
+		dzlgxxBean.setDataLength(dataLength);
+		dzlgxxBean.setDataType(dataType);
+		dzlgxxBean.setQbqbh(qbqbh);
+		dzlgxxBean.setHtid(htid);
+		dzlgxxBean.setXmbh(xmxh);
+		dzlgxxBean.setAddErrorLenth(true);
+		dzlgxxBean.setAddTitle(true);
+		dzlgxxBean.showReqLog();
+		
+		return dzlgxxBean;
+		
+	}
+	
+	/**
+	 * 电子雷管规则更新解析
+	 * @param b
+	 * @return
+	 * @author wujiaxu
+	 * @Time 2017-7-8 下午12:22:07
+	 */
+	public static DzlgReqBean parseGzgx(byte[] b) {
+		if(b == null || "".equals(b)){
+			return  new DzlgReqBean();
+		}
+		
+		int dataIndex = 0;
+		
+		//1.数据头			（2字节）
+		int dataTitle = HexUtil.convertBytes(b, 0, 2);
+		dataIndex += 2;
+		//2.数据类型			（1字节）
+		int dataType= HexUtil.convertBytes(b,dataIndex, 1);
+		dataIndex += 1;
+		//3.数据总长度		（4字节）
+		int dataLength = HexUtil.convertBytes(b, dataIndex, 4);
+		dataIndex += 4;
+		//4.起爆器设备编号长度	（1字节）
+		int qbqsbbhLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//5.起爆器设备编号		（qbqsbbhLength字节）
+		String qbqsbbh = String.valueOf(HexUtil.convertASCBytesToString(b, dataIndex, qbqsbbhLength));
+		dataIndex += qbqsbbhLength;
+		//6.经度长度			（1字节）
+		int jdLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//7.经度				（jdLength字节）
+		String jd = String.valueOf(HexUtil.convert4BytesToString(b, dataIndex, jdLength));
+		dataIndex += jdLength;
+		//8.纬度长度			（1字节）
+		int wdLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//9.纬度				（wdLength字节）
+		String wd = String.valueOf(HexUtil.convert4BytesToString(b, dataIndex, wdLength));
+		dataIndex += wdLength;
+		//10.合同编号长度		（1字节）
+		int htidLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//11.合同编号		（htidLehgth字节）
+		String htid = String.valueOf(HexUtil.convertASCBytesToString(b, dataIndex, htidLength));
+		dataIndex += htidLength;
+		//12.项目编号长度		（1字节）
+		int xmxhLehgth = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//13.项目编号		（xmxhLength字节）
+		String xmxh = String.valueOf(HexUtil.convertASCBytesToString(b, dataIndex, xmxhLehgth));
+		dataIndex += xmxhLehgth;
+		//14.单位代码长度		（1字节）
+		int dwdmLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//15.单位代码			（dwdmLength字节）
+		String dwdm = HexUtil.convertASCBytesToString(b, dataIndex, dwdmLength);
+		dataIndex += dwdmLength;
+		
+		DzlgReqBean dzlgxxBean = new DzlgReqBean();
+		dzlgxxBean.setJklx(MBDZLGConstant.JKLX_SOCKET);
+		dzlgxxBean.setDataTitle(dataTitle);
+		dzlgxxBean.setDataLength(dataLength);
+		dzlgxxBean.setDataType(dataType);
+		dzlgxxBean.setQbqbh(qbqsbbh);
+		dzlgxxBean.setDwdm(dwdm);
+		dzlgxxBean.setHtid(htid);
+		dzlgxxBean.setXmbh(xmxh);
+		dzlgxxBean.setJd(jd);
+		dzlgxxBean.setWd(wd);
+		dzlgxxBean.setAddErrorLenth(false);
+		dzlgxxBean.setAddTitle(true);
+		dzlgxxBean.showReqLog();
+		
+		return dzlgxxBean;
+	
+	}
+	
+	
+	/**
+	 * 起爆器位置上报解析
+	 * @param b
+	 * @return
+	 * @author wujiaxu
+	 * @Time 2017-7-8 下午12:22:07
+	 */
+	public static DzlgReqBean parseQbqwzsb(byte[] b) {
+		if(b == null || "".equals(b)){
+			return  new DzlgReqBean();
+		}
+
+		
+		int dataIndex = 0;
+		
+		//1.数据头			（2字节）
+		int dataTitle = HexUtil.convertBytes(b, 0, 2);
+		dataIndex += 2;
+		//2.数据类型			（1字节）
+		int dataType= HexUtil.convertBytes(b,dataIndex, 1);
+		dataIndex += 1;
+		//3.数据总长度		（4字节）
+		int dataLength = HexUtil.convertBytes(b, dataIndex, 4);
+		dataIndex += 4;
+		//4.起爆器设备编号长度	（1字节）
+		int qbqsbbhLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//5.起爆器设备编号		（qbqsbbhLength字节）
+		String qbqsbbh = String.valueOf(HexUtil.convertASCBytesToString(b, dataIndex, qbqsbbhLength));
+		dataIndex += qbqsbbhLength;
+		//6.经度长度			（1字节）
+		int jdLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//7.经度				（jdLength字节）
+		String jd = String.valueOf(HexUtil.convert4BytesToString(b, dataIndex, jdLength));
+		dataIndex += jdLength;
+		//8.纬度长度			（1字节）
+		int wdLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//9.纬度				（wdLength字节）
+		String wd = String.valueOf(HexUtil.convert4BytesToString(b, dataIndex, wdLength));
+		dataIndex += wdLength;
+		//10.单位代码长度             （1字节）
+		int dwdmLength =HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//11.单位代码                          （dwdmLength字节）
+		String dwdm = String.valueOf(HexUtil.convertASCBytesToString(b, dataIndex, dwdmLength));
+		dataIndex += dwdmLength;
+	
+		
+		DzlgReqBean dzlgxxBean = new DzlgReqBean();
+		dzlgxxBean.setJklx(MBDZLGConstant.JKLX_SOCKET);
+		dzlgxxBean.setDataTitle(dataTitle);
+		dzlgxxBean.setDataLength(dataLength);
+		dzlgxxBean.setDataType(dataType);
+		dzlgxxBean.setQbqbh(qbqsbbh);
+		dzlgxxBean.setDwdm(dwdm);
+		dzlgxxBean.setJd(jd);
+		dzlgxxBean.setWd(wd);
+		dzlgxxBean.setAddErrorLenth(false);
+		dzlgxxBean.setAddTitle(true);
+		dzlgxxBean.showReqLog();
+		
+		return dzlgxxBean;
+	
+	}
+	
+	/**
+	 * 使用信息上报解析
+	 * @param b
+	 * @return
+	 * @author wujiaxu
+	 * @Time 2017-7-9 上午11:45:42
+	 */
+	public static DzlgReqBean parseSyxxsb(byte[] b) {
+		if(b == null || "".equals(b)){
+			return  new DzlgReqBean();
+		}
+
+		int dataIndex = 0;
+		
+		//1.数据头			（2字节）
+		int dataTitle = HexUtil.convertBytes(b, 0, 2);
+		dataIndex += 2;
+		//2.数据类型			（1字节）
+		int dataType= HexUtil.convertBytes(b,dataIndex, 1);
+		dataIndex += 1;
+		//3.数据总长度		（4字节）
+		int dataLength = b.length-7;
+		dataIndex += 4;
+		//4.起爆器设备编号长度	（1字节）
+		int qbqsbbhLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//5.起爆器设备编号		（qbqsbbhLength字节）
+		String qbqsbbh = String.valueOf(HexUtil.convertASCBytesToString(b, dataIndex, qbqsbbhLength));
+		dataIndex += qbqsbbhLength;
+		//6.经度长度			（1字节）
+		int jdLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//7.经度				（jdLength字节）
+		String jd = String.valueOf(HexUtil.convert4BytesToString(b, dataIndex, jdLength));
+		dataIndex += jdLength;
+		//8.纬度长度			（1字节）
+		int wdLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//9.纬度				（wdLength字节）
+		String wd = String.valueOf(HexUtil.convert4BytesToString(b, dataIndex, wdLength));
+		dataIndex += wdLength;
+		//4.爆破时间长度                    （1字节）
+		int bpsjLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//5.爆破时间                    	（bpsjLength字节）
+//		String bpsj = String.valueOf(HexUtil.convertBytes(b, dataIndex, bpsjLength));
+//		dataIndex += bpsjLength;
+		StringBuffer bpsj = new StringBuffer();
+		for (int i = 0; i < bpsjLength; i++) {
+			String temp = String.valueOf(HexUtil.convertBytes(b, dataIndex, 1));
+			if(i == 0){
+				temp = 20 + temp + "-";
+			}
+			if(i == 1){
+				if(temp.length() > 1){
+					temp = temp + "-";
+				}else{
+					temp = 0+temp+"-";
+				}
+			}
+			if(i == 2){
+				if(temp.length() > 1){
+					temp = temp + " ";
+				}else{
+					temp = 0+temp+" ";
+				}
+			}
+			if(i == 3){
+				if(temp.length() > 1){
+					temp = temp + ":";
+				}else{
+					temp = 0+temp+":";
+				}
+			}
+			if(i == 4){
+				if(temp.length() > 1){
+					temp = temp + ":";
+				}else{
+					temp = 0 + temp + ":";
+				}
+			}
+			if(i == 5){
+				if(temp.length() > 1){
+					temp = temp;
+				}else{
+					temp = 0+temp;
+				}
+			}
+			bpsj.append(temp);
+			dataIndex++;
+		}
+		//6.爆破人员身份证长度       (1字节）
+		int bprysfzLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//7.爆破人员身份证                    （bprysfzLength字节）
+		String bprysfz = HexUtil.convertASCBytesToString(b, dataIndex, bprysfzLength);
+		dataIndex += bprysfzLength;
+		//8.申请密码的雷管UID码个数		（1字节）
+		int uidCount = b[dataIndex]* 256+(b[dataIndex+1] < 0 ? b[dataIndex+1]+256:b[dataIndex+1]);
+		dataIndex += 2;
+		//9.申请密码的雷管UID码内容总长度	（1字节）
+		int uidListTotalLength = HexUtil.convertBytes(b, dataIndex, 2);
+		dataIndex += 2;
+		//10.雷管UID码数据块	（uidListTotalLength字节）
+		List uidList = new ArrayList();
+		for(int i = 0 ; i < uidCount ; i++){
+			int uidLength = HexUtil.convertBytes(b, dataIndex, 1);
+			dataIndex += 1;
+			String uid = String.valueOf(HexUtil.convertASCBytesToString(b, dataIndex, uidLength));
+			dataIndex += uidLength;
+			uidList.add(uid);
+		}
+		//11.单位代码长度		（1字节）
+		int dwdmLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//12.单位代码			（dwdmLength字节）
+		String dwdm = HexUtil.convertASCBytesToString(b, dataIndex, dwdmLength);
+		dataIndex += dwdmLength;
+
+		
+		DzlgReqBean dzlgxxBean = new DzlgReqBean();
+		dzlgxxBean.setJklx(MBDZLGConstant.JKLX_SOCKET);
+		dzlgxxBean.setDataTitle(dataTitle);
+		dzlgxxBean.setDataLength(dataLength);
+		dzlgxxBean.setDataType(dataType);
+		dzlgxxBean.setQbqbh(qbqsbbh);
+		
+		dzlgxxBean.setJd(jd);
+		dzlgxxBean.setWd(wd);
+		dzlgxxBean.setDwdm(dwdm);
+		dzlgxxBean.setBpsj(bpsj.toString());
+		dzlgxxBean.setBprysfz(bprysfz);
+		dzlgxxBean.setUidList(uidList);
+		dzlgxxBean.setAddErrorLenth(false);
+		dzlgxxBean.setAddTitle(true);
+		dzlgxxBean.showReqLog();
+		
+		return dzlgxxBean;
+	
+	}
+	/**
+	 * http 位置上报封装数据
+	 * @Title:
+	 * @author fandengyong
+	 * @参数: @param sbbh
+	 * @参数: @param jd
+	 * @参数: @param wd
+	 * @参数: @param dwdm
+	 * @date 2017-7-24 上午9:10:15
+	 */
+	public static DzlgReqBean packHttpWzsb(String sbbh,String jd,String wd,String dwdm){
+		DzlgReqBean dzlgxxBean = new DzlgReqBean();
+		dzlgxxBean.setJklx(MBDZLGConstant.JKLX_HTTP);
+		dzlgxxBean.setQbqbh(sbbh);
+		dzlgxxBean.setJd(jd);
+		dzlgxxBean.setWd(wd);
+		dzlgxxBean.setDwdm(dwdm);
+		dzlgxxBean.setDataType(MBDZLGConstant.DATATYPE_HTTP_QBQWZSB);
+		dzlgxxBean.showReqLog();
+		//dzlgxxBean.showWzsbLog(MBDZLGConstant.HTTP_WEZB);
+		return dzlgxxBean;
+	}
+	/**
+	 * http 使用信息上报封装数据
+	 * @Title:
+	 * @author fandengyong
+	 * @参数: @param sbbh
+	 * @参数: @param jd
+	 * @参数: @param wd
+	 * @参数: @param dwdm
+	 * @参数: @param uid
+	 * @参数: @param bpsj
+	 * @参数: @param bprysfz
+	 * @参数: @param htid
+	 * @参数: @param xmbh
+	 * @参数: @return
+	 * @date 2017-7-24 上午9:30:14
+	 */
+	public static DzlgReqBean packHttpSyxxsb(String sbbh,String jd,String wd,String dwdm, 
+			String bpsj,String bprysfz,String htid,String xmbh,String uid){
+		DzlgReqBean dzlgxxBean = new DzlgReqBean();
+		dzlgxxBean.setJklx(MBDZLGConstant.JKLX_HTTP);
+		dzlgxxBean.setQbqbh(sbbh);
+		dzlgxxBean.setJd(jd);
+		dzlgxxBean.setWd(wd);
+		dzlgxxBean.setDwdm(dwdm);
+		dzlgxxBean.setBprysfz(bprysfz);
+		dzlgxxBean.setBpsj(bpsj);
+		dzlgxxBean.setHtid(htid);
+		dzlgxxBean.setXmbh(xmbh);
+		List uidList = new ArrayList();
+		if(uid != null && !"".equals(uid) ){
+			String[] uidArry = uid.split(",");
+			for (String uids : uidArry) {
+				uidList.add(uids);
+			}
+		}
+		dzlgxxBean.setUidList(uidList);
+		dzlgxxBean.setDataType(MBDZLGConstant.DATATYPE_HTTP_SYXXSB);
+		dzlgxxBean.showReqLog();
+		//dzlgxxBean.showWzsbLog(MBDZLGConstant.HTTP_SYSB);
+		return dzlgxxBean;
+	}
+	/**
+	 * http 密码离线下载封装数据
+	 * @Title:
+	 * @author fandengyong
+	 * @参数: @param sbbh
+	 * @参数: @param htid
+	 * @参数: @param xmbh
+	 * @参数: @param xtm
+	 * @参数: @param htm
+	 * @参数: @param fbh
+	 * @参数: @param dwdm
+	 * @参数: @return
+	 * @date 2017-7-24 上午9:40:26
+	 */
+	public static DzlgReqBean packHttpMmlxxz(String sbbh,String htid,String xmbh,String dwdm ,String xtm,String htm,
+			String fbh){
+		DzlgReqBean dzlgxxBean = new DzlgReqBean();
+		dzlgxxBean.setJklx(MBDZLGConstant.JKLX_HTTP);
+		dzlgxxBean.setQbqbh(sbbh);
+		dzlgxxBean.setHtid(htid);
+		dzlgxxBean.setXmbh(xmbh);
+		dzlgxxBean.setDwdm(dwdm);
+		List xtmList = new ArrayList();
+		List htmList = new ArrayList();
+		List fbhList = new ArrayList();
+		if(xtm != null && !"".equals(xtm)){
+			String[] xtmArry = xtm.split(",");
+			for (String xtms : xtmArry) {
+				xtmList.add(xtms);
+			}
+		}
+		dzlgxxBean.setXtm(xtmList);
+		if(htm != null && !"".equals(htm)){
+			String[] htmArry = htm.split(",");
+			for (String htms : htmArry) {
+				htmList.add(htms);
+			}
+		}
+		dzlgxxBean.setHtm(htmList);
+		if(fbh != null && !"".equals(fbh)){
+			String[] fbhArry = fbh.split(",");
+			for (String fbhs : fbhArry) {
+				fbhList.add(fbhs);
+			}
+		}
+		dzlgxxBean.setFbh(fbhList);
+		dzlgxxBean.setDataType(MBDZLGConstant.DATATYPE_HTTP_LXXZ);
+		dzlgxxBean.showReqLog();
+		//dzlgxxBean.showWzsbLog(MBDZLGConstant.HTTP_LXXZ);
+		return dzlgxxBean;
+	}
+	/**
+	 * http 密码在线下载封装数据
+	 * @Title:
+	 * @author fandengyong
+	 * @参数: @param sbbh
+	 * @参数: @param jd
+	 * @参数: @param wd
+	 * @参数: @param uid
+	 * @参数: @return
+	 * @date 2017-7-24 上午9:53:29
+	 */
+	public static DzlgReqBean packHttpMmZxxz(String sbbh,String jd,String wd,String uid){
+		DzlgReqBean dzlgxxBean = new DzlgReqBean();
+		dzlgxxBean.setJklx(MBDZLGConstant.JKLX_HTTP);
+		dzlgxxBean.setQbqbh(sbbh);
+		dzlgxxBean.setJd(jd);
+		dzlgxxBean.setWd(wd);
+		List uidList = new ArrayList();
+		if(uid != null && !"".equals(uid) ){
+			String[] uidArry = uid.split(",");
+			for (String uids : uidArry) {
+				uidList.add(uids);
+			}
+		}
+		dzlgxxBean.setUidList(uidList);
+		dzlgxxBean.setDataType(MBDZLGConstant.DATATYPE_HTTP_ZZXZ);
+		dzlgxxBean.showReqLog();
+	
+		return dzlgxxBean;
+	}
+	public static DzlgReqBean packHttpGxgz(String sbbh,String jd,String wd,String dwdm,String htid,
+			String xmbh){
+		DzlgReqBean dzlgxxBean = new DzlgReqBean();
+		dzlgxxBean.setJklx(MBDZLGConstant.JKLX_HTTP);
+		dzlgxxBean.setQbqbh(sbbh);
+		dzlgxxBean.setJd(jd);
+		dzlgxxBean.setWd(wd);
+		dzlgxxBean.setDwdm(dwdm);
+		dzlgxxBean.setHtid(htid);
+		dzlgxxBean.setXmbh(xmbh);
+		dzlgxxBean.setDataType(MBDZLGConstant.DATATYPE_HTTP_GXGZ);
+		dzlgxxBean.showReqLog();
+		return dzlgxxBean;
+	}
+}

@@ -1,0 +1,231 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<%@ page language="java" contentType="text/html; charset=UTF-8"%>
+<jsp:directive.page import="com.jadlsoft.utils.DateUtils" />
+
+<%@ taglib uri="/WEB-INF/taglib/struts-bean.tld" prefix="bean"%>
+<%@ taglib uri="/WEB-INF/taglib/struts-html.tld" prefix="html"%>
+<%@ taglib uri="/WEB-INF/taglib/struts-logic.tld" prefix="logic"%>
+<%@ taglib uri="page.tld" prefix="page"%>
+<%@ taglib prefix="c" uri="/WEB-INF/taglib/c.tld"%>
+<%@ include file="../include/head.inc"%>
+<head>
+
+<%@ include file="../include/meta.inc"%>
+<link href="../css/load.css" type="text/css" rel="stylesheet"></link>
+<link href="../css/main1.css" type="text/css" rel="stylesheet"></link>
+<script type="text/javascript" src="../common/tip.js"></script>
+<script type="text/javascript" src="../common/common.js"></script>
+<script type="text/javascript" src="../common/list.js"></script>
+<script type="text/javascript" src="../common/xwin.js"></script>
+<script type="text/javascript" src="../common/searchUtils.js"></script>
+<script type="text/javascript" src="../common/jquery.js"></script>
+<script type="text/javascript" src="../common/validate.js"></script>
+<script type="text/javascript" src="../common/aqjg.js"></script>
+<script type="text/javascript" src="../common/xzqhUtils.js"></script>
+<script type="text/javascript" src="../common/queryUtils.js"></script>
+
+<script type="text/javascript">
+	function skipyhfwlist(){
+		window.location.href ="${pageContext.request.contextPath }/yhfw/yhfwAction_skipyhfwyquery.action";
+	}
+	function checkparamter(){
+		var fields=new Array("jklx**","datatype**","qbqbh**","fwsj#","dwdm**","htid**","xmbh**");
+		getparamter(fields, "queryparamter", "queryparamtername");
+		document.forms[0].submit();
+		return true;
+	}
+</script>
+
+</head>
+<body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0"
+	onload="initSearchConditions();">
+	<div class="bmain">
+				<div class="j10"></div>
+				<!-- 查询 -->
+				<form action="${pageContext.request.contextPath }/yhfw/yhfwlist.action" method="post">
+				<input type="hidden" id="queryparamter" name="queryparamter" value="${queryparamter}" />
+				<input type="hidden" id="queryparamtername" name="queryparamtername" value="${queryparamtername}" />
+				<table border="0" cellpadding="0" cellspacing="0" class="mb-tm" >
+					<tr id="barId">
+						<td class="boxtop rbox-pos rbox-imgb" id="baseInfo_title">
+		                    <div class="htx otxx"><b>用户访问查询</b></div>
+		                    <div class="boxtop-lt"></div>
+		                    <div class="boxtop-rt"></div>
+						</td>
+					</tr>		
+					<tr id='tip_tr'>
+						<td colspan="2">
+							<table class="mb-table" style="border-bottom:1px solid #96b5d2;" border="0" cellspacing="0" cellpadding="0">
+							<tr>
+								<td class="tab-tr tdbgcolor" style="border-top: 0px" align="right">请求方式:</td>
+								<td class="td-mild"  style="border-top: 0px" >
+									<select name="jklx"  id="jklx" title="请求方式">
+											<option value="">请选择</option>
+						            		<option value="http">http</option>
+						            		<option value="socket">socket</option>
+						            		
+							         </select>
+								</td>
+								<td class="tab-tr tdbgcolor" style="border-top: 0px" align="right">访问接口:</td>
+								<td class="td-mild"  style="border-top: 0px" >
+									<select name="datatype"  id="datatype" title="访问接口">
+						            		<option value="">请选择</option>
+						            		<option value="位置上报">位置上报</option>
+						            		<option value="使用上报">使用上报</option>
+						            		<option value="在线下载密码">在线下载密码</option>
+						            		<option value="离线下载密码">离线下载密码</option>
+						            		
+							         </select>
+								</td>
+								
+							</tr>
+							<tr>
+								<td class="tab-tr tdbgcolor" style="border-top: 0px" align="right">用户:</td>
+								<td class="td-mild"  style="border-top: 0px" >
+									<input type="text" name="dwdm" id="dwdm" title="用户"/>
+								</td>
+								<td class="tab-tr tdbgcolor" style="border-top: 0px" align="right">起爆器编号:</td>
+								<td class="td-mild"  style="border-top: 0px" >
+									<input type="text" name="qbqbh" id="qbqbh" title="起爆器编号"/>
+								</td>
+								
+							</tr>
+							<tr>
+								<td class="tab-tr tdbgcolor" style="border-top: 0px" align="right">合同:</td>
+								<td class="td-mild"  style="border-top: 0px" >
+									<input type="text" name="htid" id="htid" title="合同"/>
+								</td>
+								<td class="tab-tr tdbgcolor" style="border-top: 0px" align="right">项目:</td>
+								<td class="td-mild"  style="border-top: 0px" >
+									<input type="text" name="xmbh" id="xmbh" title="项目"/>
+								</td>
+								
+							</tr>
+							
+							<tr>
+								
+								<td class="tab-tr tdbgcolor" align="right">设置时间:</td>
+								<td class="td-mild" >
+						     	<input  id="fwsjfrom_date" name="fwsjfrom_date" title="设置起始时间" readonly="readonly"  class="s_input_date" 
+								onfocus="WdatePicker({maxDate:'#F{$dp.$(\'fwsjto_date\').value||\'2020-10-01\'}'})"/>
+								&nbsp;至&nbsp;
+								<input  id="fwsjto_date" name="fwsjto_date"  title="设置截止时间" readonly="readonly" class="s_input_date" 
+								onfocus="WdatePicker({minDate:'#F{$dp.$(\'fwsjfrom_date\').value}',maxDate:'2020-10-01'})"/>
+						        </td>
+						     </tr>
+						</table>
+						
+						<table id="buttonTable" width="100%" border="0" cellpadding="2" cellspacing="0">
+							<tr height="50">
+								<td align="center" colspan="6">
+								<!-- class="submit_btn" -->
+									<input type="button"  style="cursor:hand;" value="查询" onclick="checkparamter()"/>
+									<input type="reset"  style="cursor:hand;" value="重填"/>
+								</td>
+							</tr>
+						</table>
+						
+					</tr>	
+				</table>
+				</form>
+				<!-- list -->
+				<div class="j10"></div>
+				<input type="hidden" id="queryparamter" name="queryparamter" value="${queryparamter}" />
+				<input type="hidden" id="queryparamtername" name="queryparamtername" value="${queryparamtername}" />
+				<table border="0" cellpadding="0" cellspacing="0" class="mb-tm" >
+					<tr id="barId">
+						<td class="boxtop rbox-pos rbox-imgb" id="baseInfo_title">
+		                    <div class="htx otxx"><b>用户访问列表</b></div>
+		                    <div class="boxtop-lt"></div>
+		                    <div class="boxtop-rt"></div>
+						</td>
+					</tr>		
+					<tr id='tip_tr'>
+						<td colspan="2">
+						<div  id='tjId' style="font-size:12px; font-family:Arial, Helvetica, sans-serif;border-left:1px solid #96b5d2;border-right: 1px solid #96b5d2; ">
+							<script></script>
+						</div>
+						<%--<div align="left" onclick="skipyhfwlist()">查询</div>
+							--%><table class="mb-table" width="100%" style="border-bottom:1px solid #96b5d2;" border="0" cellspacing="0" cellpadding="0" id="datatable">
+								<tr  class="mb-ta-head" align='center'>
+									<th class="borderline" nowrap>接口</th>
+									<th class="borderline">访问类型</th>
+									<th class="borderline">单位</th>
+									<th class="borderline">访问区域</th>
+									<th class="borderline">访问时间</th>
+									<th class="borderline">起爆器</th>
+									<th class="borderline">合同序号</th>
+									<th class="borderline">项目编号</th>
+									<th class="borderline">箱条码</th>
+									<th class="borderline">盒条码</th>
+									<th class="borderline">发编号</th>
+									<th class="borderline">雷管个数</th>
+									<th class="borderline">爆破时间</th>
+									<th class="borderline">爆破人</th>
+									<th class="borderline">返回数据</th>
+								</tr>
+								<logic:present name="list">
+									<logic:iterate id="map" name="list" indexId="index">
+										<tr align="center">
+											<td>
+			                              		${map.jklx }
+			                              	</td>
+			                             	<td>
+			                              		${map.datatype }
+			                              	</td>
+			                              	<td>
+			                              		${map.dwdm }
+			                              	</td>
+			                             	<td>
+			                              		${map.xzqh }
+			                              	</td>
+			                             	
+			                             	<td>
+			                              		${map.fwsj }
+			                              	</td>
+			                             	
+			                             	<td>
+			                              		${map.qbqbh }
+			                              	</td>
+			                             	<td>
+			                              		${map.htid }
+			                              	</td>
+			                             	<td>
+			                              		${map.xmbh }
+			                              	</td>
+			                              	<td>
+			                              		${map.xtm }
+			                              	</td>
+			                              	<td>
+			                              		${map.htm }
+			                              	</td>
+			                              	<td>
+			                              		${map.fbh }
+			                              	</td>
+			                              	<td>
+			                              		${map.lguid }
+			                              	</td>
+			                              	<td>
+			                              		${map.bpsj }
+			                              	</td>
+			                              	<td>
+			                              		${map.bprysfz }
+			                              	</td>
+			                              	<td>
+			                              		${map.fh }
+			                              	</td>
+										</tr>
+									</logic:iterate>
+								</logic:present>							
+							</table>
+						<!--分页-->
+						<div><%@ include file="../include/page.inc"%></div>
+						<form name="research" method="post" action="">
+							<input type="hidden" name="queryparamtername" value="<bean:write name="queryparamtername"/>"/>
+						</form>
+					</tr>	
+					</tr>	
+			</table>
+	</div>
+</body>					
+	

@@ -1,0 +1,276 @@
+/**
+ * @Description 基础Action
+ * @Company 京安丹灵
+ * @author zongshuai
+ * @date 2013-03-06
+ * @version 1.0
+ */
+
+package com.core.struts.action;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.struts2.interceptor.ApplicationAware;
+import org.apache.struts2.interceptor.ServletRequestAware;
+import org.apache.struts2.interceptor.ServletResponseAware;
+
+import com.core.model.session.BaseUserSession;
+import com.core.struts.action.login.UserUtils;
+import com.core.utils.DateUtils;
+import com.jadlsoft.business.CommonLogManager;
+import com.jadlsoft.model.session.UserSessionBean;
+import com.opensymphony.xwork2.ActionSupport;
+
+public class BaseAction extends ActionSupport implements ServletRequestAware,
+		ServletResponseAware, ApplicationAware {
+	public static final String VIEW = "view";
+	public static final String SUCCEED = "success";
+	public static final String FAILED = "failed";
+	public static final String OK = "OK";
+
+	protected HttpServletRequest request;
+	protected HttpServletResponse response;
+	protected Map application;
+	protected List todoList = new ArrayList();
+	protected Map todoMap = null;
+	private CommonLogManager commonLogManager;
+
+	/**
+	 * 从session中取得当前登录用户信息
+	 * 
+	 * @return
+	 */
+	public BaseUserSession getUserSession() {
+		return UserUtils.getUserSession(request);
+	}
+
+	public UserSessionBean getUserSessionBean() {
+		HttpSession session = request.getSession(false);
+		if (session == null) {
+			return null;
+		} else {
+			return (UserSessionBean) session
+					.getAttribute(UserUtils.USER_SESSION);
+		}
+	}
+	
+	/**
+	 * 获取登录用户角色
+	 * 
+	 * @return
+	 * @author wujiaxu
+	 * @Time 2016-12-1 下午03:04:13
+	 */
+	public String getRoleId() {
+		BaseUserSession userSessionBean = getUserSessionBean();
+		if (userSessionBean != null) {
+			return userSessionBean.getRoleId();
+		}
+		return "";
+	}
+	
+	/**
+	 * 获取登录用户组织机构ID
+	 * 
+	 * @return
+	 * @author wujiaxu
+	 * @Time 2016-12-1 下午03:04:13
+	 */
+	public String getZzjgId() {
+		BaseUserSession userSessionBean = getUserSessionBean();
+		if (userSessionBean != null) {
+			return userSessionBean.getQydm();
+		}
+		return "";
+	}
+
+	/**
+	 * 获取登录用户ID
+	 * 
+	 * @return
+	 * @author wujaixu
+	 * @Time 2016-12-1 下午03:04:13
+	 */
+	public String getUserId() {
+		BaseUserSession userSessionBean = getUserSessionBean();
+		if (userSessionBean != null) {
+			return userSessionBean.getUserId();
+		}
+		return "";
+	}
+
+	/**
+	 * 从session获取username
+	 * 
+	 * @return
+	 * @author wujiaxu
+	 * @Time 2016-12-6 下午07:56:23
+	 */
+	public String getUserName() {
+		BaseUserSession userSessionBean = getUserSessionBean();
+		if (userSessionBean != null) {
+			return userSessionBean.getUserName();
+		}
+		return "";
+	}
+
+	/**
+	 * 获取登录用户有效截止日期
+	 * 
+	 * @return
+	 * @author wujaixu
+	 * @Time 2016-12-1 下午03:04:29
+	 */
+	public String getYxjzrq() {
+		BaseUserSession userSession = getUserSession();
+		if (userSession != null) {
+			Date yxjzrq = getUserSession().getYxjzrq();
+			if (yxjzrq != null) {
+				return DateUtils.DateToString(yxjzrq);
+			}
+		}
+		return "";
+	}
+
+	/**
+	 * 获取登录用户类型
+	 * 
+	 * @return
+	 * @author wujaixu
+	 * @Time 2016-12-1 下午03:07:36
+	 */
+	public String getUserType() {
+		BaseUserSession userSession = getUserSession();
+		if (userSession != null) {
+			return getUserSession().getYhlx();
+		}
+		return "";
+	}
+
+	/**
+	 * 获取登录用户单位代码
+	 * 
+	 * @return
+	 * @author wujaixu
+	 * @Time 2016-12-1 下午03:08:20
+	 */
+	public String getDwdm() {
+		BaseUserSession userSession = getUserSession();
+		if (userSession != null) {
+			return getUserSession().getDwdm();
+		}
+		return null;
+	}
+
+	/**
+	 * 获取登录用户组织机构代码
+	 * 
+	 * @return
+	 * @author wujaixu
+	 * @Time 2016-12-1 下午03:08:20
+	 */
+	public String getZzjgdm() {
+		BaseUserSession userSession = getUserSession();
+		if (userSession != null) {
+			return getUserSession().getQydm();
+		}
+		return null;
+	}
+
+	/**
+	 * 获取登录用户所属单位爆破作业单位类别
+	 * 
+	 * @return
+	 * @author wujaixu
+	 * @Time 2016-12-1 下午03:08:20
+	 */
+	public String getBpzydwlb() {
+		BaseUserSession userSession = getUserSession();
+		if (userSession != null) {
+			return null;
+		}
+		return null;
+	}
+
+	/**
+	 * 获取登录用户行政区划
+	 * 
+	 * @return
+	 * @author wujaixu
+	 * @Time 2016-12-1 下午03:09:28
+	 */
+	public String getXzqh() {
+		BaseUserSession userSession = getUserSession();
+		if (userSession != null) {
+			return getUserSession().getXzqh();
+		}
+		return null;
+	}
+
+	
+	/**
+	 * 
+	 * @功能：对爆破作业每个功能操作都加入日志记录
+	 * @author:machao @date 2016-7-13 上午11:25:22
+	 * @param fwId
+	 *            每个服务的名称
+	 * @param nr
+	 *            数据存入的内容
+	 * @return
+	 * @return String
+	 */
+	public void addLog(String fwId, String nr) {
+		String userId = getUserId();
+		String userName = getUserName();
+		String ip = request.getRemoteAddr();
+		String Url = request.getRequestURI();
+		commonLogManager.saveOperationLog(fwId, userId, ip, Url, "用户【"
+				+ userName + "】" + nr,
+				DateUtils.getCurrentDate("yyyy-MM-dd HH:mm:ss"));
+	}
+
+	/**
+	 * 添加可操作列表
+	 * 
+	 * @param msg
+	 * @param url
+	 * @param target
+	 * @author wujiaxu
+	 * @Time 2016-12-6 下午06:52:09
+	 */
+	public void addTodoList(String msg, String url, String target) {
+		todoMap = new HashMap();
+		todoMap.put("ms", msg);
+		todoMap.put("url", url);
+		todoMap.put("target", target);
+		todoList.add(todoMap);
+	}
+
+	public CommonLogManager getCommonLogManager() {
+		return commonLogManager;
+	}
+
+	public void setCommonLogManager(CommonLogManager commonLogManager) {
+		this.commonLogManager = commonLogManager;
+	}
+
+	public void setServletRequest(HttpServletRequest request) {
+		this.request = request;
+	}
+
+	public void setServletResponse(HttpServletResponse response) {
+		this.response = response;
+	}
+
+	public void setApplication(Map application) {
+		this.application = application;
+	}
+}

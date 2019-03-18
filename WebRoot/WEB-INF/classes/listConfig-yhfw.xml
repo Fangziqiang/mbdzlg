@@ -1,0 +1,14 @@
+<configs>
+	 <!-- 用户访问列表 -->
+	 <forward request="/yhfw/yhfwlist.action" 
+		requirecondition="1~=~1"
+		defaultcondition="1~=~1"
+		class=""
+		parentnode=""
+		description=""
+		datasource="(select * from T_DZLG_YHFW order by qqsj desc)"
+		success="/yhfw/yhfwlist.jsp"
+		title=""
+		field=""
+	 />
+</configs>

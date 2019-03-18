@@ -1,0 +1,154 @@
+package com.core.business;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import com.core.dbutils.DaoUtils;
+import com.core.dbutils.SQLHelper;
+import com.core.exceptions.BaseAppException;
+import com.core.utils.DateUtils;
+import com.core.utils.StringUtils;
+
+public class BaseManager {
+
+	protected DaoUtils daoUtils;
+	
+	protected LogUtils logUtils;
+
+	public BaseManager() {
+		super();
+	}
+
+	public void setDaoUtils(DaoUtils daoUtils) {
+		this.daoUtils = daoUtils;
+	}
+
+	public void setLogUtils(LogUtils logUtils){
+		this.logUtils = logUtils;
+	}
+	/**
+	 * 查询代码所对应的文字,主要用于查询没有缓冲的字典表,如t_dm_xzhqh
+	 * @param tableName:代码表
+	 * @param textField:文字字段
+	 * @param codeField:代码字段
+	 * @param codeValue:代码值
+	 * @return 代码-文字
+	 */
+	public String queryNameByCode(String tableName, String textField,
+			String codeField, String codeValue) {
+		if (StringUtils.isEmpty(codeValue)) {
+			return "";
+		}
+		StringBuffer sql = new StringBuffer();
+		sql.append("SELECT ").append(textField).append(" FROM ")
+				.append(tableName).append(" WHERE ").append(codeField)
+				.append(" = '").append(codeValue.trim()).append("'");
+		Object name = daoUtils.queryForObject(sql.toString(), String.class);
+		return name == null ? "" : name.toString();
+	}
+	
+	/**
+	 * 
+	* @Title: doGetCountAndListFromSql
+	* @Description: 执行分页查询
+	* @param replaceSql
+	* @param condition
+	* @param skip
+	* @param count
+	* @return
+	* @throws BaseAppException
+	* @date 2013-6-14 下午04:38:00
+	 */
+	public Map doGetCountAndListFromSql(String replaceSql, Map condition,
+			int skip, int count) throws BaseAppException{
+		
+		Map map = new HashMap();
+		try{
+			int total = daoUtils.queryForInt("select count(*) from (" + replaceSql+ " )a", makeCondition(condition));
+			if (skip >= total || skip < 0) {
+				skip = total - (total % count);
+				if (skip == total && skip > 0) {
+					skip = total - count;
+				}
+			}
+			if((total-skip-count)>0) {
+				replaceSql = SQLHelper.getListSqlFromSql(replaceSql,
+						skip, count);
+			}else{
+				replaceSql = SQLHelper.getListSqlFromSql(replaceSql,
+						skip, count);
+			}			
+//			condition.put("page_maxcount", new Integer(count));
+//			condition.put("page_skipcount", new Integer(skip));
+
+			List list = daoUtils.find(replaceSql, condition);
+
+			map.put("total", new Integer(total));
+			map.put("skip", new Integer(skip));
+			map.put("list", list);
+			
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return map;
+	}
+	
+	
+	/**
+	 * 
+	* @Title: makeCondition
+	* @Description: 拼装条件
+	* @param condition
+	* @return
+	* @date 2013-6-14 下午04:38:10
+	 */
+	private Map makeCondition(Map condition) {
+		if (condition != null) {
+			Iterator item = condition.keySet().iterator();
+			while (item.hasNext()) {
+				String searchField = (String) item.next();
+				if (condition.get(searchField).getClass() == String.class) {
+					String value = condition.get(searchField).toString();
+					if (value.indexOf("to_date") >= 0) {
+						if(searchField.equals("djsj") || searchField.equals("djsj_0_") || searchField.equals("lrsj") || searchField.equals("lrsj_0_")){
+							condition.put(searchField, DateUtils.createDjDate(value.substring(7)));
+						}else{
+							condition.put(searchField, DateUtils.createDate(value.substring(7)));
+						}
+					}
+				}
+			}
+		}
+		return condition;
+	}
+	
+	public void execSql(String sql){
+		daoUtils.execSql(sql);
+	}
+	
+	/**
+	 * 获取最大的ID
+	 * @参数：@return
+	 * @返回值：String
+	 */
+	public synchronized int getMaxId(String tablename,String tablepkfields) {
+		try {
+			Integer maxid = (Integer) daoUtils.queryForObject("select max("+tablepkfields+") id from "+tablename,
+					Integer.class);
+			if (maxid == null || maxid == 0 ) 
+			{	
+				maxid = 1;
+			} 
+			else 
+			{
+				maxid = Integer.valueOf(maxid)+1;
+			}
+			return maxid;
+		} catch (Exception e) {
+			throw new RuntimeException("获取当前最大Iid出错！");
+		}
+	}
+	
+}

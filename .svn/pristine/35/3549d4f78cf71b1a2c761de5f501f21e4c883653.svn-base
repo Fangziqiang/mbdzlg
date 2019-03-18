@@ -1,0 +1,130 @@
+package com.jadlsoft.business.dzlg;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
+import com.core.business.BaseManager;
+import com.core.utils.SpringBeanFactory;
+import com.jadlsoft.domain.DzlgReqBean;
+import com.jadlsoft.utils.HexUtil;
+import com.jadlsoft.utils.MBDZLGConstant;
+import com.jadlsoft.utils.SecretUtils;
+import com.jadlsoft.utils.TripleDES_Socket;
+import com.jadlsoft.utils.jaxb.JaxbUtil;
+
+public class DzlgSocketManager extends BaseManager {
+	private static Logger logger = Logger.getLogger(DzlgSocketManager.class);
+	
+	private DzlgReqBean dzlgReqBean;
+	
+	/**
+	 * 处理电子雷管socket请求
+	 * @param b
+	 * @return
+	 * @author wujiaxu
+	 * @Time 2017-7-9 下午12:26:15
+	 */
+	public byte[] dzlgHandler(byte[] b) {
+		DzlgManager dzlgManager = (DzlgManager) SpringBeanFactory.getBean("dzlgManager");
+	    try {
+			/**
+			 * 1、数据解析
+			 */
+	    	this.decodeDate(b);
+	    
+			/**
+			 * 2、向网络服务平台请求
+			 */
+	        byte[] res = (byte[])dzlgManager.reqToWlfwpt(dzlgReqBean);
+	        
+	        /**
+	         * 3、返回结果
+	         */
+	        return this.returnMsg((byte[])res);
+	    } catch (Exception e) {
+        	logger.error("解析出错，非法请求信息！", e);
+        	return null;
+		}
+	}
+
+	/**
+	 * 解析电子雷管请求信息
+	 * @param b
+	 * @author wujiaxu
+	 * @throws Exception 
+	 * @Time 2017-7-9 下午12:27:08
+	 */
+	private void decodeDate(byte[] b) throws Exception {
+		int dateType = HexUtil.convertBytes(b,2,1);
+		//解密数据帧
+		b = SecretUtils.decodeData(b);
+		
+		//解析请求信息
+		switch (dateType) {
+		case MBDZLGConstant.DATATYPE_ZXXZ_INP_JS:
+			dzlgReqBean = DzlgParseUtil.parseMmxzOnline(b);	//在线申请（简式）
+			break;
+		case MBDZLGConstant.DATATYPE_ZXXZ_INP_FS:
+			dzlgReqBean = DzlgParseUtil.parseMmxzOnline(b);	//在线申请（复式）
+			break;
+		case MBDZLGConstant.DATATYPE_LXXZ_INP_JS:
+			dzlgReqBean = DzlgParseUtil.parseMmxzOffline(b);//离线申请（简式）
+			break;
+		case MBDZLGConstant.DATATYPE_GXGZ_INP:
+			dzlgReqBean = DzlgParseUtil.parseGzgx(b);		//更新规则
+			break;
+		case MBDZLGConstant.DATATYPE_QBQWZSB_INP:
+			dzlgReqBean = DzlgParseUtil.parseQbqwzsb(b);	//起爆器位置上报
+			break;
+		case MBDZLGConstant.DATATYPE_SYXXSB_INP:
+			dzlgReqBean = DzlgParseUtil.parseSyxxsb(b);		//使用信息上报
+			break;
+		default:
+			throw new RuntimeException("非法的请求类型！");
+		}	
+	}
+
+	/**
+	 * 返回结果
+	 * @param cwxx
+	 * @return
+	 * @author wujiaxu
+	 * @throws Exception 
+	 * @Time 2017-7-7 下午2:58:25
+	 */
+	private byte[] returnMsg(byte[] msg) throws Exception {
+		if(msg == null){
+			return msg;
+		}
+	
+		//获取返回的数据类型
+		int dateType_Re =  (Integer) MBDZLGConstant.DATATYPE_RETURN.get(dzlgReqBean.getDataType());
+		
+		return SecretUtils.encodeData(msg,dateType_Re);
+	}
+
+	
+
+	public static void main(String[] args) {
+		DzlgReqBean dzlgxxBean = new DzlgReqBean();
+		dzlgxxBean.setQbqbh("qbqbh");
+
+		List list = new ArrayList();
+		list.add("111");
+		list.add("222");
+		dzlgxxBean.setUidList(list);
+		dzlgxxBean.setError(1);
+
+		String str = JaxbUtil.convertToXml(dzlgxxBean);
+		System.out.println(str);
+		//DzlgxxBean dzlgxxBean_ = JaxbUtil.converyToJavaBean(str, DzlgxxBean.class);
+		//		System.out.println(dzlgxxBean_);
+		dzlgxxBean.showReqLog();
+
+		
+	}
+
+	
+
+}

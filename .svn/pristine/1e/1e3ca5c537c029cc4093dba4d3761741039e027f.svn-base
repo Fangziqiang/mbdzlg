@@ -1,0 +1,56 @@
+#full_android {
+   	top: 100px;
+    bottom: 0;
+	padding-right: 32px; 
+    position: fixed;
+    z-index: 9999;
+    right: 0.1%;
+}
+
+#full_ios {
+   	top: 100px;
+    bottom: 0;
+	padding-right: 156px; 
+    position: fixed;
+    z-index: 9999;
+    right: 0.1%;
+}
+.ewm2 {
+    background: #EBEBEB;
+}
+.ewm2:hover{ background:#D6D6D6;}
+
+
+
+
+
+/*二维码*/
+.appdown-2code {
+    display: block;
+    width: 31px;
+    height: 181px;
+    position: fixed;
+    z-index: 1000;
+    top: 100px;
+    right: 0.1%;
+    background: url(../images/pop-appdown3.png) no-repeat 0 ;
+}
+.appdown-2code a {
+    display: block;
+    position: relative;
+    width: 31px;
+    height: 181px;
+    cursor: pointer;
+}
+.appdown-2code a i {
+    display: none;
+    position: absolute;
+    right: 100%;
+    top: 10px;
+}
+.appdown-2code span {
+    display: block;
+    width: 31px;
+    height: 34px;
+    cursor: pointer;
+}

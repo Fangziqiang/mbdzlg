@@ -1,0 +1,175 @@
+package com.jadlsoft.socket;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Date;
+
+import org.apache.log4j.Logger;
+
+import com.core.utils.DateUtils;
+import com.core.utils.SpringBeanFactory;
+import com.jadlsoft.business.dzlg.DzlgManager;
+import com.jadlsoft.utils.HexUtil;
+import com.jadlsoft.utils.SecretUtils;
+
+public class TcpServerTest {
+	private static Logger log = Logger.getLogger(TcpServerTest.class);	
+	private static Socket client = null;
+	public static void main(String[] args) throws IOException {
+		ServerSocket serverSocket = new ServerSocket(6081);
+		client = serverSocket.accept();
+		 
+		
+		System.out.println("【在线下载_socket】通讯开始...");
+
+		while (!client.isClosed()) {
+			byte[] res = null;
+			InputStream is = null;
+			OutputStream os = null;
+			Date handlerTime = DateUtils.getCurrentDate("yyyy-MM-dd HH:mm:ss");
+			try{
+				client.setKeepAlive(true);
+				client.setSoTimeout(500000);
+		
+				/**
+				 * 1、接受请求【长连接,超过20秒未接受到数据自动关闭】
+				 */
+		
+				byte[] b = read(client);
+				if(b == null){
+					closeSocket();
+					return;
+				}
+				
+	            /**
+	             * 2、处理接受信息
+	             */
+				res = HandlerMsg(b);
+				  
+				/**
+				 * 3、返回结果
+				 */
+	            os = client.getOutputStream();
+	            os.write(res);
+	            os.flush();
+	            
+	            /**
+	             * 4、结束连接
+	             */
+	            if(isEndMsg(res)){
+	            	closeSocket();
+	            }
+			} catch (Exception e) {
+				System.out.println("【在线下载_socket】处理异常！"+e);
+				closeSocket();
+			}
+			
+		}
+
+	}
+	
+	private static byte[] read(Socket client) throws IOException {
+		Date handlerTime = DateUtils.getCurrentDate("yyyy-MM-dd HH:mm:ss");
+		InputStream is = client.getInputStream();
+		int count = 0; 
+
+	
+		byte[] resltByte = new byte[]{};
+		
+		
+		int rc = 0;
+		int sum = 0;
+		int dataLength = 0;
+		int len = 0;
+		byte[] b = null;
+		//处理分包
+		do{
+			while (count == 0) { 
+				count = is.available(); 
+				 if(isWaitTimeOut(handlerTime)){
+					   closeSocket();
+					   return null;
+				 }
+			} 
+			
+		
+			b = new byte[count]; 
+			sum ++;
+			len = is.read(b);
+			rc += len;
+			resltByte = byteMerger(resltByte, b);
+			if(sum == 1){
+				//数据头
+				int dataTitle = HexUtil.convertBytes(b, 0, 2);
+				if(dataTitle == 6876){
+                    System.out.println("非法请求socket连接关闭");
+                    return null;
+				}
+				//数据总长度		（4字节）
+				dataLength = HexUtil.bytesToInt2(b, 3)+7;//包含数据头
+				System.out.println("接收数据帧总长度："+dataLength);
+			}
+			System.out.println("第"+sum+"数据包数据长度："+count);
+			count = 0;
+			//重置计数
+			handlerTime = DateUtils.getCurrentDate("yyyy-MM-dd HH:mm:ss");
+		}while(dataLength != rc);
+		return resltByte;
+		
+	}
+
+	private static byte[] byteMerger(byte[] byte_1, byte[] byte_2){  
+        byte[] byte_3 = new byte[byte_1.length+byte_2.length];  
+        System.arraycopy(byte_1, 0, byte_3, 0, byte_1.length);  
+        System.arraycopy(byte_2, 0, byte_3, byte_1.length, byte_2.length);  
+        return byte_3;  
+    }  
+	
+	private static boolean isWaitTimeOut(Date handlerTime) {
+		Date nowTime = DateUtils.getCurrentDate("yyyy-MM-dd HH:mm:ss");
+		if(nowTime.getTime() - handlerTime.getTime() > 20*1000){
+			System.out.println("【在线下载_socket】空闲等待超时！");
+            return true;
+        }
+		return false;
+	}
+
+	private static byte[] HandlerMsg(byte[] b) {
+		
+		return new byte[]{1,1,1,1,1,1,1,1,1,11,1,1,1,11,1,1,};
+	}
+
+	private static boolean isEndMsg(byte[] res) {
+		if(res == null || res.length <=15){
+			return true;
+		}
+		return false;
+	}
+
+	private static void closeSocket() {
+		try { 
+			if (client != null) {
+				if(!client.isOutputShutdown()){
+					client.shutdownOutput();
+				}
+				if(!client.isInputShutdown()){
+					client.shutdownInput();
+				}
+				if(!client.isClosed()){
+					client.close();
+					System.out.println("【在线下载_socket】连接关闭！");
+					System.out.println("【在线下载_socket】通讯结束...");
+				}
+            }  
+			
+		} catch (Exception e) {   
+        	client = null;   
+        	System.out.println("【在线下载_socket】连接关闭异常！"+e);
+        }   
+		
+	}
+	
+}

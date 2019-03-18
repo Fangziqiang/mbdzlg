@@ -1,0 +1,301 @@
+package com.jadlsoft.yhfw;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import com.jadlsoft.business.Yhfw.YhfwManager;
+import com.jadlsoft.domain.LgBean;
+import com.jadlsoft.domain.YhfwBean;
+import com.jadlsoft.utils.DateUtils;
+import com.jadlsoft.utils.MBDZLGConstant;
+import com.core.utils.SpringBeanFactory;
+public class YhfwAdd {
+	
+	public void addYhfwData(Map map){
+		List<LgBean> listLgbean = new ArrayList<LgBean>();
+		if(map != null && map.size()>0){
+			//判断访问类型,封装雷管
+			if(map.get("dataType") != null && !"".equals(map.get("dataType"))){
+				// 对返回信息转换  
+				fhxxZh(map);
+				// 访问类型转换
+				if("lxxz".equals(map.get("dataType"))){
+					map.put("dataType", MBDZLGConstant.HTTP_LXXZ);
+				}
+				if("zxxz".equals(map.get("dataType"))){
+					map.put("dataType",  MBDZLGConstant.HTTP_ZXXZ);
+				}
+				if("wzsb".equals(map.get("dataType"))){
+					map.put("dataType", MBDZLGConstant.HTTP_WEZB);
+				}
+				if("sysb".equals(map.get("dataType"))){
+					map.put("dataType", MBDZLGConstant.HTTP_SYSB);
+				}
+				if("1".equals(map.get("dataType").toString())){
+					map.put("dataType",MBDZLGConstant.SOCKET_ZXXZ_FS);
+				} 
+				if("3".equals(map.get("dataType").toString())){
+					map.put("dataType", MBDZLGConstant.SOCKET_LXXZ_FS);
+				}
+				if("7".equals(map.get("dataType").toString())){
+					map.put("dataType",  MBDZLGConstant.SOCKET_LXXZ_JS);
+				}
+				if("9".equals(map.get("dataType").toString())){
+					map.put("dataType", MBDZLGConstant.SOCKET_WZSB);
+				}
+				if("17".equals(map.get("dataType").toString())){
+					map.put("dataType", MBDZLGConstant.SOCKET_SYSB);
+				}
+			}
+			map.put("fwsh", DateUtils.getCurrentTime());
+			//将map分装成Yhfwxx类
+			YhfwBean yhfw = fzMap(map);
+			
+			//保存用户访问信息 
+			YhfwManager yhfwManager = (YhfwManager) SpringBeanFactory.getBean("yhfwManager");
+			yhfwManager.saveYHfw(yhfw);
+			//保存雷管信息
+			
+		}
+		
+	}
+	//分装雷管
+	private void sysbFzLg(Map map,List<LgBean> listLgbean) {
+		if(map != null && map.size() > 0){
+			if(map.get("fh") != null && !"".equals(map.get("fh")) ){
+				if(map.get("uidList") != null && ((List)(map.get("uidlist"))).size()>0){
+					LgBean lgBean = new LgBean();
+					List uidList = (List)(map.get("uidlist"));
+					//使用上报
+					if("sysb".equals(map.get("dataType")) || "17".equals(map.get("dataType").toString())){
+						for(int i = 0; i<uidList.size(); i++){
+							lgBean.setLguid(uidList.get(i)+"");
+							if("true".equals(map.get("fh"))){
+								lgBean.setZt(MBDZLGConstant.FH_LG_ZT_TRUE);
+							}else{
+								lgBean.setZt(MBDZLGConstant.FH_LG_ZT_FAIL);
+							}
+							listLgbean.add(lgBean);
+						}
+					}
+					//下载
+					if("zxxz".equals(map.get("dataType")) || "lxxz".equals(map.get("dataType")) || "1".equals(map.get("dataType").toString()) ||
+							"7".equals(map.get("dataType").toString()) || "3".equals(map.get("dataType").toString())){
+						
+					}
+				}
+			}
+		}
+	}
+
+	//位置上报返回信息 转换
+	/*public void wzsbFhZh(Map map){
+		if(map.get("fh") != null && !"".equals(map.get("fh"))){
+			String cwxx = map.get("fh").toString();
+			if("0".equals(cwxx)){
+				map.put("fh", "成功");
+			}else if("1".equals(cwxx)){
+				map.put("fh", "非法的申请信息");
+			}else if("2".equals(cwxx)){
+				map.put("fh", "未找到该起爆器设备信息");
+			}else if("3".equals(cwxx)){
+				map.put("fh", "该起爆器未设置作业任务");
+			}else if("4".equals(cwxx)){
+				map.put("fh", "起爆器在黑名单中");
+			}else if("5".equals(cwxx)){
+				map.put("fh", "起爆位置不在起爆区域内 ");
+			}else if("6".equals(cwxx)){
+				map.put("fh", "起爆位置在禁爆区域内 ");
+			}else if("7".equals(cwxx)){
+				map.put("fh", "该起爆器已注销/报废");
+			}else if("8".equals(cwxx)){
+				map.put("fh", "禁爆任务");
+			}else if("99".equals(cwxx)){
+				map.put("fh", "mbdzlgtxzx 与 wlfwpt的网络连接失败");
+			}else{
+				//99+
+				map.put("fh", " mbdzlgtxzx 与 wlfwpt的网络连接失败");
+			}
+		}
+	}*/
+	//使用上报 返回信息转换  {"success":"true"}
+	/*public void sysbFhZh(Map map){
+		if(map.get("fh") != null && !"".equals(map.get("fh"))){
+			String cwxx = map.get("fh").toString();
+			if("true".equals(cwxx)){
+				map.put("fh", MBDZLGConstant.FH_T);
+			}else if("fail".equals(cwxx)){
+				map.put("fh", MBDZLGConstant.FH_F);
+			}else if("0".equals(cwxx)){		//socket
+				map.put("fh", MBDZLGConstant.FH_0);
+			}else if("1".equals(cwxx)){
+				map.put("fh", MBDZLGConstant.FH_1);
+			}else if("2".equals(cwxx)){
+				map.put("fh", MBDZLGConstant.FH_2);
+			}else if("99".equals(cwxx)){
+				map.put("fh", "mbdzlgtxzx网络连接失败");
+			}else{
+				//99+
+				map.put("fh", " wlfwpt与qgdzlgmmzx的网络连接失败");
+			}
+		}
+	}*/
+	// 返回信息转换 
+	public void fhxxZh(Map map){
+		if(map.get("fh") != null && !"".equals(map.get("fh"))){
+			String cwxx = map.get("fh").toString();
+			if("true".equals(cwxx)){
+				map.put("fh", MBDZLGConstant.FH_T);
+			}else if("fail".equals(cwxx)){
+				map.put("fh", MBDZLGConstant.FH_F);
+			}else if("0".equals(cwxx)){
+				map.put("fh", MBDZLGConstant.FH_CWXX_0);
+			}else if("1".equals(cwxx)){
+				map.put("fh", MBDZLGConstant.FH_CWXX_1);
+			}else if("2".equals(cwxx)){
+				map.put("fh", MBDZLGConstant.FH_CWXX_2);
+			}else if("3".equals(cwxx)){
+				map.put("fh", MBDZLGConstant.FH_CWXX_3);
+			}else if("4".equals(cwxx)){
+				map.put("fh", MBDZLGConstant.FH_CWXX_4);
+			}else if("5".equals(cwxx)){
+				map.put("fh", MBDZLGConstant.FH_CWXX_5);
+			}else if("6".equals(cwxx)){
+				map.put("fh", MBDZLGConstant.FH_CWXX_6);
+			}else if("7".equals(cwxx)){
+				map.put("fh", MBDZLGConstant.FH_CWXX_7);
+			}else if("8".equals(cwxx)){
+				map.put("fh", MBDZLGConstant.FH_CWXX_8);
+			}else if("9".equals(cwxx)){
+				if(map.get("jklx") !=null && !"".equals(map.get("jklx"))){
+					if("socket".equals(map.get("jklx"))){
+						map.put("fh", MBDZLGConstant.FH_CWXX_9_S);
+					}else{
+						map.put("fh", MBDZLGConstant.FH_CWXX_9_H);
+					}
+				}
+			}else if("10".equals(cwxx)){
+				if(map.get("jklx") !=null && !"".equals(map.get("jklx"))){
+					if("socket".equals(map.get("jklx"))){
+						map.put("fh", MBDZLGConstant.FH_CWXX_10_S);
+					}else{
+						map.put("fh", MBDZLGConstant.FH_CWXX_10_H);
+					}
+				}
+			}else if("11".equals(cwxx)){
+				if(map.get("jklx") !=null && !"".equals(map.get("jklx"))){
+					if("socket".equals(map.get("jklx"))){
+						map.put("fh", MBDZLGConstant.FH_CWXX_11_S);
+					}else{
+						map.put("fh", MBDZLGConstant.FH_CWXX_11_H);
+					}
+				}
+			}else if("99".equals(cwxx)){
+				map.put("fh", MBDZLGConstant.FH_CWXX_99);
+			}else if("12".equals(cwxx)){
+				map.put("fh", MBDZLGConstant.FH_CWXX_12);
+			}else {
+				map.put("fh", MBDZLGConstant.FH_CWXX_99_1);
+			}
+		}
+	}
+	
+/*	//socket下载 返回信息转换 
+	public void socketXzFhZh(Map map){
+		if(map.get("fh") != null && !"".equals(map.get("fh"))){
+			String cwxx = map.get("fh").toString();
+			if("0".equals(cwxx)){
+				map.put("fh", " 下载成功");
+			}else if("1".equals(cwxx)){
+				map.put("fh", " 非法的申请信息");
+			}else if("2".equals(cwxx)){
+				map.put("fh", " 未找到该起爆器设备信息");
+			}else if("3".equals(cwxx)){
+				map.put("fh", " 该起爆器未设置作业任务");
+			}else if("4".equals(cwxx)){
+				map.put("fh", " 起爆器在黑名单中");
+			}else if("5".equals(cwxx)){
+				map.put("fh", " 起爆位置不在起爆区域内");
+			}else if("6".equals(cwxx)){
+				map.put("fh", " 起爆位置在禁爆区域内 ");
+			}else if("7".equals(cwxx)){
+				map.put("fh", " 该起爆器已注销/报废");
+			}else if("8".equals(cwxx)){
+				map.put("fh", " 禁爆任务");
+			}else if("9".equals(cwxx)){
+				map.put("fh", " 离线下载不支持生产厂家试爆");
+			}else if("10".equals(cwxx)){
+				map.put("fh", " 起爆器未设置准爆区域");
+			}else if("11".equals(cwxx)){
+				map.put("fh", " 离线下载雷管数量超过限制（1000）");
+			}else if("99".equals(cwxx)){
+				map.put("fh", " mbdzlgtxzx 与 wlfwpt网络连接失败");
+			}else {
+				map.put("fh", " wlfwpt 与 qgdzlgmmzx的网络连接失败");
+			}
+		}
+	}*/
+	//分装Yhfw类
+	public YhfwBean fzMap(Map map){
+		if(map != null && map.size()>0){
+			YhfwBean yhfwxx = new YhfwBean();
+			if(map.get("dwdm") != null && !"".equals(map.get("dwdm"))){
+				yhfwxx.setDwdm(map.get("dwdm").toString());
+			}
+			if(map.get("jklx") != null && !"".equals(map.get("jklx"))){
+				yhfwxx.setJklx(map.get("jklx").toString());
+			}
+			if(map.get("dataType") != null && !"".equals(map.get("dataType"))){
+				yhfwxx.setDataType(map.get("dataType").toString());
+			}
+			if(map.get("xzqh") != null && !"".equals(map.get("xzqh"))){
+				yhfwxx.setXzqh(map.get("xzqh").toString());
+			}
+			if(map.get("fh") != null && !"".equals(map.get("fh"))){
+				yhfwxx.setFh(map.get("fh").toString());
+			}
+			if(map.get("qbqbh") != null && !"".equals(map.get("qbqbh"))){
+				yhfwxx.setQbqbh(map.get("qbqbh").toString());
+			}
+			if(map.get("htid") != null && !"".equals(map.get("htid"))){
+				yhfwxx.setHtid(map.get("htid").toString());
+			}
+			if(map.get("xmbh") != null && !"".equals(map.get("xmbh"))){
+				yhfwxx.setXmbh(map.get("xmbh").toString());
+			}
+			//yhfwxx.setFwsj(DateUtils.getCurrentDate("yyyy-MM-dd HH:mm：ss "));
+			yhfwxx.setFwsj(DateUtils.getCurrentDate("yyyy-MM-dd HH:mm：ss "));
+			if(map.get("xtm") != null && !"".equals(map.get("xtm"))){
+				yhfwxx.setXtm(map.get("xtm").toString().split(",").length+"");
+			}
+			if(map.get("htm") != null && !"".equals(map.get("htm"))){
+				yhfwxx.setHtm(map.get("htm").toString().split(",").length+"");
+			}
+			if(map.get("fbh") != null && !"".equals(map.get("fbh"))){
+				yhfwxx.setFbh(map.get("fbh").toString().split(",").length+"");
+			}
+			if(map.get("jd") != null && !"".equals(map.get("jd"))){
+				yhfwxx.setJd(map.get("jd").toString());
+			}
+			if(map.get("wd") != null && !"".equals(map.get("wd"))){
+				yhfwxx.setWd(map.get("wd").toString());
+			}
+			if(map.get("bpsj") != null && !"".equals(map.get("bpsj"))){
+				yhfwxx.setBpsj(map.get("bpsj").toString());
+			}
+			if(map.get("bprysfz") != null && !"".equals(map.get("bprysfz"))){
+				yhfwxx.setBprysfz(map.get("bprysfz").toString());
+			}
+			if(map.get("uidList") != null && ((List)(map.get("uidList"))).size()>0){
+				List lguidList = (List)(map.get("uidList"));
+				
+				yhfwxx.setLguid(lguidList.size()+"");
+			}
+			return yhfwxx;
+		}
+		return null;
+	}
+}

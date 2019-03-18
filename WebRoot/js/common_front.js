@@ -1,0 +1,29 @@
+$(function(){
+	$(".side-btn").click(function(){
+		var marginleft = $(".fadeInLeft").css("margin-left");
+	    if(marginleft == '-220px'){
+		    $(".fadeInLeft").css("margin-left","0px");
+		}else{
+		    $(".fadeInLeft").css("margin-left","-220px");
+		}
+	});
+});
+//弹窗
+$(function(){
+    $("#modal-close").click(function(){
+        $("#modal-overlay").hide();
+        $("#modal").hide();
+    });
+    $("#submit_btn").click(function(){
+        $("#modal-overlay").show();
+        $("#modal").show();
+    });
+    $("#modal-overlay").click(function(){
+        $("#modal-overlay").hide();
+        $("#modal").hide();
+    });
+    $(".ellipsis").click(function(){
+        $("#modal-overlay").show();
+        $("#modal").show();
+    });
+});

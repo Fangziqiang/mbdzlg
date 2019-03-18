@@ -1,0 +1,518 @@
+package com.jadlsoft.business.dzlg;
+
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+import javax.xml.rpc.ParameterMode;
+import javax.xml.rpc.encoding.XMLType;
+
+
+import org.apache.axis.client.Call;
+import org.apache.axis.client.Service;
+import org.apache.log4j.Logger;
+import org.dom4j.Document;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
+import org.dom4j.io.OutputFormat;
+import org.dom4j.io.XMLWriter;
+
+import com.core.business.BaseManager;
+import com.core.business.zdgl.ZdglManager;
+import com.jadlsoft.domain.DzlgLyffMmxzBean;
+import com.jadlsoft.domain.DzlgParseHelper;
+import com.jadlsoft.domain.DzlgReqBean;
+import com.jadlsoft.utils.MBDZLGConstant;
+import com.jadlsoft.utils.SysConfigUtils;
+import com.jadlsoft.utils.TripleDES3_DzlgReq;
+import com.jadlsoft.utils.jaxb.JaxbUtil;
+import com.jit.util.Base64;
+
+public class DzlgManager extends BaseManager {
+	private Logger logger = Logger.getLogger(DzlgManager.class);
+
+	
+	/**
+	 * 根据行政区划获取网络服务平台地址
+	 * @参数： @param xzqh
+	 * @参数： @return   
+	 * @返回值： String  
+	 * @throws
+	 */
+	public String  getWlfwptDz(String xzqh){
+		String sql =" select dz from t_dw_wlfwptdz where xzqh=:xzqh";
+		Map conditions = new HashMap();
+		conditions.put("xzqh", xzqh);	
+		List list =  daoUtils.find(sql, conditions);
+		return list.get(0).toString();
+	}
+
+
+	/**
+	 * 创建请求XMl数据
+	 * @参数： @param map
+	 * @参数： @return   
+	 * @返回值： String  
+	 * @throws
+	 */
+	public String createXml(Map map) {
+		Document document = DocumentHelper.createDocument();
+		document.setXMLEncoding("utf-8");
+		Element sq = document.addElement("sq");
+		Element qbqbhElement = sq.addElement("qbqbh");
+		qbqbhElement.setText(map.get("qbqbh") == null ? "":map.get("qbqbh").toString());
+		Element jdElement = sq.addElement("jd");
+		jdElement.setText(map.get("jd") == null ? "":map.get("jd").toString());
+		Element wdElement = sq.addElement("wd");
+		wdElement.setText(map.get("wd") == null ? "":map.get("wd").toString());
+		Element bpsjElement = sq.addElement("bpsj");
+		bpsjElement.setText(map.get("bpsj") == null ? "":map.get("bpsj").toString());
+		Element bprysfzElement = sq.addElement("bprysfz");
+		bprysfzElement.setText(map.get("bprysfz") == null ? "" : map.get("bprysfz").toString());
+		Element dwdmElement = sq.addElement("dwdm");
+		dwdmElement.setText(map.get("dwdm") == null ? "":map.get("dwdm").toString());
+		Element htidElement = sq.addElement("htid");
+		htidElement.setText(map.get("htid") == null ? "":map.get("htid").toString());
+		Element xmbhElement = sq.addElement("xmbh");
+		xmbhElement.setText(map.get("xmbh") == null ? "":map.get("xmbh").toString());
+		Element fbhElement = sq.addElement("fbh");
+		fbhElement.setText(map.get("fbh") == null ? "":map.get("fbh").toString());
+		Element htmElement = sq.addElement("htm");
+		htmElement.setText(map.get("htm") == null ? "":map.get("htm").toString());
+		Element xtmElement = sq.addElement("xtm");
+		xtmElement.setText(map.get("xtm") == null ? "":map.get("xtm").toString());
+		Element uids = sq.addElement("uids");
+		List uidList = (List) map.get("uidList");
+		if(uidList != null && uidList.size() > 0){
+			for (int i = 0; i < uidList.size(); i++) {
+				Element uidElement  = uids.addElement("uid");	
+				uidElement.setText(uidList.get(i).toString());
+			}
+		}
+		 OutputFormat format = OutputFormat.createPrettyPrint();
+		 format.setEncoding("utf-8");
+         StringWriter sw = new StringWriter(); 
+         XMLWriter xw = new XMLWriter(sw, format); 
+         try { 
+			xw.write(document); 
+			xw.flush(); 
+			xw.close(); 
+         } catch (IOException e) { 
+                 logger.error("格式化XML文档发生异常，请检查！", e); 
+         } 
+         return sw.toString(); 
+	}
+
+	/**
+	 * 设置作业任务
+	 * @参数： @param insertList
+	 * @参数： @param list   
+	 * @返回值： void  
+	 * @throws
+	 */
+	public void szZyrw(List zyrwList,List list) {
+		Map map = new HashMap();
+		List tempList = null;
+		String insert_sql = " insert into t_dzlg_qbqssrw (id,qbqbh,zyrwid,xzqh) values (Q_DZLG_QBQSSRW.nextval,:qbqbh,:zyrwid,:xzqh)";
+		String update_sql = " update t_dzlg_qbqssrw set xzqh = :xzqh where qbqbh=:qbqbh and zyrwid=:zyrwid ";
+		String[] insert_fields = {"qbqbh","zyrwid","xzqh"};
+		String[] update_fields = {"xzqh","qbqbh","zyrwid"};
+		List insert_list = new ArrayList();
+		List update_list = new ArrayList();
+		for (int i = 0; i < zyrwList.size(); i++) {
+			map = (Map) zyrwList.get(i);
+			tempList = this.getZyrwByQbqAndZyrwid(map.get("qbqbh").toString(),map.get("zyrwid").toString());
+			if(tempList != null && tempList.size() > 0){
+				update_list.add(map);
+			}else{
+				insert_list.add(map);
+			}
+		}
+		if(insert_list.size() > 0){
+			int[] count1 = daoUtils.executeBatchUpdate(insert_sql, insert_fields, insert_list);
+			Map update_map = new HashMap() ;
+			Map condition = null;
+			for (int i = 0; i < count1.length; i++) {
+				condition = new HashMap();
+				update_map = (Map) insert_list.get(i);
+				condition.put("id", update_map.get("id"));
+				condition.put("status", count1[i]);
+				list.add(condition);
+			}
+		}
+		if( update_list.size() > 0){
+			int[] count2 = daoUtils.executeBatchUpdate(update_sql, update_fields, update_list);
+			Map update_map = new HashMap() ;
+			Map condition = null;
+			for (int i = 0; i < count2.length; i++) {
+				condition = new HashMap();
+				update_map = (Map) update_list.get(i);
+				condition.put("id", update_map.get("id"));
+				condition.put("status", count2[i]);
+				list.add(condition);
+			}
+		}
+		
+	}
+
+	/**
+	 * 变更作业任务
+	 * @参数： @param updateList
+	 * @参数： @param list   
+	 * @返回值： void  
+	 * @throws
+	 */
+	public void bgZyrw(List zyrwList,List list) {
+		Map map = null;
+		List tempList = new ArrayList();
+		String insert_sql = " insert into t_dzlg_qbqssrw (id,qbqbh,zyrwid,xzqh) values (Q_DZLG_QBQSSRW.nextval,:qbqbh,:zyrwid,:xzqh)";
+		String update_sql = " update t_dzlg_qbqssrw set xzqh = :xzqh where qbqbh=:qbqbh and zyrwid=:zyrwid ";
+		String sql = " update t_dzlg_qbqssrw set qbqbh = '',xzqh='' where qbqbh=:qbqbh";
+		String[] insert_fields = {"qbqbh","zyrwid","xzqh"};
+		String[] update_fields = {"xzqh","qbqbh","zyrwid"};
+		String[] fields = {"qbqbh"};
+		List insert_list = new ArrayList();
+		List update_list = new ArrayList();
+		for (int i = 0; i < zyrwList.size(); i++) {
+			map = (Map) zyrwList.get(i);
+			tempList = this.getZyrwByQbqAndZyrwid(map.get("qbqbh").toString(),map.get("zyrwid").toString());
+			if(tempList != null && tempList.size() > 0){
+				update_list.add(map);
+			}else{
+				insert_list.add(map);
+			}
+		}
+		/**
+		 * 更新起爆器编号为空
+		 */
+		daoUtils.executeBatchUpdate(sql, fields, zyrwList);
+		if(insert_list.size() > 0){
+			int[] count1 = daoUtils.executeBatchUpdate(insert_sql, insert_fields, insert_list);
+			Map insert_map = new HashMap() ;
+			Map condition = null;
+			for (int i = 0; i < count1.length; i++) {
+				insert_map = (Map) insert_list.get(i);
+				condition = new HashMap();
+				condition.put("id", insert_map.get("id"));
+				condition.put("status", count1[i]);
+				list.add(condition);
+			}
+		}
+		if( update_list.size() > 0){
+			int[] count2 = daoUtils.executeBatchUpdate(update_sql, update_fields, update_list);
+			Map update_map = new HashMap() ;
+			Map condition = null;
+			for (int i = 0; i < count2.length; i++) {
+				update_map = (Map) update_list.get(i);
+				condition = new HashMap();
+				condition.put("id", update_map.get("id"));
+				condition.put("status", count2[i]);
+				list.add(condition);
+			}
+		}
+	}
+
+	/**
+	 * 取消作业任务
+	 * @参数： @param delList
+	 * @参数： @param list   
+	 * @返回值： void  
+	 * @throws
+	 */
+	public void qxZyrw(List zyrwList,List list) {
+		String sql = " delete from t_dzlg_qbqssrr where qbqbh=:qbqbh and zyrwid=:zyrwid ";
+		String[] fields = {"qbqbh","zyrwid"};
+		int[] count = daoUtils.executeBatchUpdate(sql, fields, zyrwList);
+		Map map = new HashMap() ;
+		Map condition = null;
+		for (int i = 0; i < count.length; i++) {
+			map = (Map) zyrwList.get(i);
+			condition = new HashMap();
+			condition.put("id", map.get("id"));
+			condition.put("status", count[i]);
+			list.add(condition);
+		}
+	}
+	
+	/**
+	 * 根据起爆器编号，作业任务ID 查询作业任务
+	 * @参数： @param qbqbh
+	 * @参数： @param zyrwid
+	 * @参数： @return   
+	 * @返回值： List  
+	 * @throws
+	 */
+	public List getZyrwByQbqAndZyrwid(String qbqbh, String zyrwid) {
+		String sql =" select * from t_dzlg_qbqssrw where qbqbh=:qbqbh and zyrwid=:zyrwid ";
+		Map conditions = new HashMap();
+		conditions.put("qbqbh", qbqbh);
+		conditions.put("zyrwid", zyrwid);
+		return daoUtils.find(sql, conditions);
+	}
+	
+	/**
+	 * 获取起爆器作业任务List
+	 * @参数： @param qbqbh
+	 * @参数： @return   
+	 * @返回值： List  
+	 * @throws
+	 */
+	public List getQbqbhList(String qbqbh) {
+		String sql =" select * from t_dzlg_qbqssrw where qbqbh=:qbqbh";
+		Map conditions = new HashMap();
+		conditions.put("qbqbh", qbqbh);
+		return daoUtils.find(sql, conditions);
+	}
+
+	
+	/**
+	 * 根据起爆器和作业任务获取行政区划
+	 * @param dwdm
+	 * @param htid
+	 * @param xmbh
+	 * @param qbqbh
+	 * @return
+	 * @author wujiaxu
+	 * @Time 2017-7-6 下午4:22:49
+	 */
+	public String getXzqhByQbqAndZyrw(String dwdm, String htid, String xmbh,
+			String qbqbh) {
+		
+		//根据作业任务返回行政区划
+		if(xmbh != null && !"".equals(xmbh) && xmbh.length() == 15){
+			return xmbh.substring(0, 2)+"0000";
+		}else if(htid != null && !"".equals(htid) && htid.length() == 15){
+			return htid.substring(0, 2)+"0000";
+		}else if(dwdm != null && !"".equals(dwdm) && dwdm.length() == 13){
+			return dwdm.substring(0, 2)+"0000";
+		}
+		
+		//根据备案的起爆器获取行政区划
+		StringBuffer sql = new StringBuffer();
+		sql.append(" select * from t_dzlg_qbqssrw where qbqbh is not null and zyrwid is not null");
+		if(qbqbh != null && !"".equals(qbqbh)){
+			sql.append(" and qbqbh = '"+qbqbh+"' ");
+		}
+
+		List list = daoUtils.find(sql.toString(), new HashMap());		
+		if(list != null && list.size() == 1){
+			Map map = (Map) list.get(0);
+			String xzqh = (String) map.get("xzqh");
+			String zyrwid = (String) map.get("zyrwid");
+			if(xzqh == null || "".equals(xzqh)){
+				return zyrwid.substring(0, 2)+"0000";
+			}
+			return xzqh.substring(0, 2)+"0000";
+		}
+		logger.info(MBDZLGConstant.LOGINFO_TITLE_FAILE+"根据起爆器["+qbqbh+"]未获取到对应的行政区划，查询t_dzlg_qbqssrw得到的结果是"+list+"!");
+		return "";
+	}
+	
+	/**
+	 * 向网络服务平台发起请求
+	 * @param dzlgxxBean
+	 * @return
+	 * @author wujiaxu
+	 * @throws Exception 
+	 * @Time 2017-7-7 下午1:40:41
+	 */
+	public DzlgReqBean reqToWlfwpt(DzlgReqBean dzlgxxBean) throws Exception {
+		/**
+		 * 1、验证完整性
+		 */
+		if( dzlgxxBean.getQbqbh() == null && dzlgxxBean.getDwdm() == null &&  dzlgxxBean.getHtid() == null && dzlgxxBean.getXmbh() == null){
+			logger.info(MBDZLGConstant.LOGINFO_TITLE_FAILE+dzlgxxBean.getTitle()+"请求信息不完成，起爆器编号、单位代码、合同ID、项目序号必须有一个！");
+			dzlgxxBean.setError(MBDZLGConstant.ERROR_REQ);
+			return dzlgxxBean;
+		}
+		
+		/**
+		 * 2、获取网络服务平台调用地址
+		 */
+		//2.1、获取行政区划
+		
+		String xzqh= this.getXzqhByQbqAndZyrw(dzlgxxBean.getDwdm(),dzlgxxBean.getHtid(),dzlgxxBean.getXmbh(),dzlgxxBean.getQbqbh());
+		if(xzqh == null || "".equals(xzqh)){
+			logger.info(MBDZLGConstant.LOGINFO_TITLE_FAILE+dzlgxxBean.getTitle()+"未获取到转发地址!");
+			dzlgxxBean.setError(MBDZLGConstant.ERROR_REQ_NOFONDXZQH);
+			return dzlgxxBean;
+		}
+		
+		//2.2、获取网络服务平台IP地址
+		String webappArr = this.getWlfwptdz(xzqh);
+		if(webappArr == null || "".equals(webappArr)){
+			logger.info(MBDZLGConstant.LOGINFO_TITLE_FAILE+dzlgxxBean.getTitle()+"未找到行政区划【"+xzqh+"】对应的网络服务平台地址!");
+			dzlgxxBean.setError(MBDZLGConstant.ERROR_REQ);
+			return dzlgxxBean;
+		}
+		
+		//2.3获取调用的url
+		StringBuffer dz = new StringBuffer();
+		webappArr = SysConfigUtils.getProperty("mbxtwlfwpt_url");
+		dz.append(webappArr).append("/services/dzlgService?wsdl");
+		logger.info(MBDZLGConstant.LOGINFO_TITLE_SUCCESS+dzlgxxBean.getTitle()+"请求【"+xzqh+"】网络服务平台："+dz.toString());
+		
+		/**
+		 * 3、调用网络服务平台
+		 */
+		return this.toWlfwpt(dz.toString(),dzlgxxBean);
+	}
+
+
+	/**
+	 * 获取网络服务平台地址
+	 * @param xzqh
+	 * @return
+	 * @author wujiaxu
+	 * @Time 2017-7-8 上午11:03:39
+	 */
+	private String getWlfwptdz(String xzqh) {
+		Map wlfwptdzMap = ZdglManager.getDm("t_dw_wlfwptdz");
+		xzqh = xzqh.substring(0, 2)+"0000";
+		String url  = ((Map) wlfwptdzMap.get(xzqh)).get("dz").toString();
+		String xzqhmc = ((Map) wlfwptdzMap.get(xzqh)).get("sfmc").toString();
+		return url;
+	}
+
+	/**
+	 * 方式请求网络服务平台
+	 * @param url
+	 * @param dzlgxxBean
+	 * @return
+	 * @author wujiaxu
+	 * @throws Exception 
+	 * @Time 2017-7-7 下午2:41:36
+	 */
+	private DzlgReqBean toWlfwpt(String url, DzlgReqBean dzlgxxBean) throws Exception  {
+		try {
+			String reData =  this.webserviceReq(url,dzlgxxBean);
+			//解密
+			String res = TripleDES3_DzlgReq.decode(Base64.decode(reData));
+			logger.info(MBDZLGConstant.LOGINFO_TITLE_SUCCESS+dzlgxxBean.getTitle()+"网络服务平台返回数据【"+res+"】！");
+			return JaxbUtil.converyToJavaBean(res, DzlgReqBean.class);
+		} catch (Exception e) {
+			logger.error(MBDZLGConstant.LOGINFO_TITLE_FAILE+dzlgxxBean.getTitle()+"webservice请求网络服务平台出错！", e);
+			dzlgxxBean.setError(MBDZLGConstant.ERROR_CONNECT);
+			return dzlgxxBean;
+		}
+	}
+	
+	
+
+	/**
+	 * webservice请求
+	 * @param url
+	 * @param dzlgxxBean
+	 * @return
+	 * @author wujiaxu
+	 * @throws Exception 
+	 * @Time 2017-7-31 下午4:51:02
+	 */
+	private String webserviceReq(String url, DzlgReqBean dzlgxxBean) throws Exception {
+		Service  service = new Service();
+		Call call = null;
+		call = (Call) service.createCall();
+		call.setTargetEndpointAddress(url);
+		call.setTimeout(new Integer(180 * 1000));// 超时设定30秒抛出异常
+		call.setOperationName("dzlgReq");// 调用方法
+		call.addParameter("dzlgxx", XMLType.XSD_STRING, ParameterMode.IN);// 增加参数
+		call.setReturnType(XMLType.XSD_STRING);// 指定返回类型
+		return  (String)call.invoke(new Object[]{ dzlgxxBean == null ? "" : DzlgParseHelper.encode_http(JaxbUtil.convertToXml(dzlgxxBean).toString())});// 调用服务并返回存在的对应数据
+	}
+
+	/**
+	 * 领用发放根据序列号和密钥下载密码
+	 * @Title:
+	 * @author fandengyong
+	 * @参数: @param dzlgLyffMmxz
+	 * @参数: @return
+	 * @date 2017-7-27 上午8:55:31
+	 */
+	public String lyffToWlfwpt(DzlgLyffMmxzBean lyffMmxz) {
+		/**
+		 * 1、验证数据
+		 */
+		if(lyffMmxz.getXlh() == null || "".equals(lyffMmxz.getXlh()) || lyffMmxz.getXlh().length() != 6){
+			
+			return "{'result':'"+ MBDZLGConstant.LYFF_ERROR_FFXLH+"'}";
+		}
+		//验证 xlh 中是否有英文字母
+		Pattern p = Pattern.compile("[a-zA-z]");
+		if(p.matcher(lyffMmxz.getXlh()).find())
+        {
+			return MBDZLGConstant.LYFF_ERROR_FFXLH;
+        }
+		/**
+		 * 根据序列号获取网络服务平台信息
+		 */
+		Map map = this.getXzqhToXlh(lyffMmxz.getXlh());
+		if(map == null || map.size() == 0){
+			return "{'result':'"+ MBDZLGConstant.LYFF_ERROR_FFXLH+"'}";
+		}
+		String wlffptdArr = (String) map.get("dz");
+		if(wlffptdArr == null || "".equals(wlffptdArr)){
+			logger.info("未找到行政区划【"+map.get("xzqh")+"】对应的网络服务平台地址!");
+			return "{'result':'"+ MBDZLGConstant.LYFF_ERROR_FFXLH+"'}";
+		}
+		StringBuffer dz = new StringBuffer();
+		wlffptdArr = SysConfigUtils.getProperty("mbxtwlfwpt_url");
+		dz.append(wlffptdArr).append("/services/dzlgService?wsdl");
+		logger.info("调用【"+map.get("sfmc")+"】网络服务平台地址："+dz.toString());
+		return this.toLyffWlfwpt(dz.toString(), lyffMmxz);
+	}
+	/**
+	 * 领用发放访问网络服务平台
+	 * @Title:
+	 * @author fandengyong
+	 * @参数: @param dz
+	 * @参数: @param xlh
+	 * @参数: @param my
+	 * @参数: @return
+	 * @date 2017-7-27 上午9:27:56
+	 */
+	private String toLyffWlfwpt(String url, DzlgLyffMmxzBean lyffMmxzBean) {
+		String str = null;
+		try {
+			Service  service = new Service();
+			Call call = null;
+			call = (Call) service.createCall();
+			call.setTargetEndpointAddress(url);
+			call.setTimeout(new Integer(180 * 1000));// 超时设定30秒抛出异常
+			call.setOperationName("dzlgLyffReq");// 调用方法
+			call.addParameter("dzlglyffxx", XMLType.XSD_STRING, ParameterMode.IN);// 增加参数
+			Object ss = new Object[]{""};
+			call.setReturnType(XMLType.XSD_STRING);// 指定返回类型
+			
+			str =  (String)call.invoke( new Object[]{lyffMmxzBean == null ? "" : JaxbUtil.convertToXml(lyffMmxzBean).toString()});// 调用服务并返回存在的对应数据
+			return str;
+			
+		} catch (Exception e) {
+			logger.error("请求网络服务平台出错！", e);
+			return "{'result':'"+ MBDZLGConstant.LYFF_ERROR_FFXLH+"'}";
+		}
+	}
+
+	/**
+	 * 根据序列号获网络服务平台信息
+	 * @Title:
+	 * @author fandengyong
+	 * @参数: @param xlh
+	 * @参数: @return
+	 * @date 2017-7-27 上午9:07:06
+	 */
+	private Map getXzqhToXlh(String xlh) {
+		//序列号组成 ：  xzqh前两位 + 4位随机数 
+		String xzqh = xlh.substring(0, 2);
+		String sql = "select * from t_dw_wlfwptdz where xzqh like '"+xzqh+"%'";
+		List list = daoUtils.find(sql, new HashMap());
+		if(list != null && list.size() == 1){
+			return (Map) list.get(0);
+		}
+		return  null;
+	}
+	
+}

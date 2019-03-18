@@ -1,0 +1,117 @@
+package com.core.dbutils;
+
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import org.springframework.jdbc.core.JdbcOperations;
+import org.springframework.jdbc.core.RowMapper;
+
+public class DicCache
+{
+  private Map cache = new HashMap();
+  private Map mapcache = new HashMap();
+  private JdbcOperations jdbcTemplate = null;
+  private boolean retrieved = false;
+  private Calendar lastRetrieved = null;
+  private String[] tableList;
+  private String keyColumn;
+  private static DicCache instance = new DicCache();
+
+  public DicCache()
+  {
+    instance = this;
+  }
+
+  public static DicCache getInstance()
+  {
+    return instance;
+  }
+
+  public Map getCache()
+  {
+    return this.cache;
+  }
+
+  public void setCache()
+  {
+    if ((this.keyColumn == null) || (this.tableList == null) || (this.tableList.length == 0))
+      return;
+    this.retrieved = true;
+    this.lastRetrieved = Calendar.getInstance();
+    LowcaseColumnRowMapper localLowcaseColumnRowMapper = new LowcaseColumnRowMapper();
+    for (int i = 0; i < this.tableList.length; i++)
+      cacheOneTable(localLowcaseColumnRowMapper, this.tableList[i]);
+  }
+
+  public Map getMapcache()
+  {
+    return this.mapcache;
+  }
+
+  public void setKeyColumn(String paramString)
+  {
+    this.keyColumn = paramString;
+  }
+
+  public void setJdbcTemplate(JdbcOperations paramJdbcOperations)
+  {
+    this.jdbcTemplate = paramJdbcOperations;
+  }
+
+  public void setTableList(String[] paramArrayOfString)
+  {
+    this.tableList = paramArrayOfString;
+  }
+
+  public String[] getTableList()
+  {
+    return this.tableList;
+  }
+
+  public void cacheOneTable(RowMapper paramRowMapper, String paramString)
+  {
+    String[] arrayOfString = paramString.split("//");
+    String str1 = null;
+    String str2 = null;
+    String str3 = null;
+    if (arrayOfString.length > 2)
+    {
+      str1 = arrayOfString[0];
+      str2 = "(" + arrayOfString[1] + ")";
+      str3 = arrayOfString[2];
+    }
+    else
+    {
+      str1 = arrayOfString[0];
+      str2 = str1;
+      str3 = this.keyColumn;
+    }
+    List localList = this.jdbcTemplate.query("SELECT * FROM " + str2, paramRowMapper);
+    this.cache.put(str1, localList);
+    LinkedHashMap localLinkedHashMap = new LinkedHashMap();
+    for (int i = 0; i < localList.size(); i++)
+    {
+      Map localMap = (Map)localList.get(i);
+      localLinkedHashMap.put(localMap.get(str3), localMap);
+    }
+    this.mapcache.put(str1, localLinkedHashMap);
+  }
+
+  public void reCacheOneTable(String paramString)
+  {
+    if (paramString == null)
+      return;
+    for (int i = 0; i < this.tableList.length; i++)
+    {
+      String str1 = this.tableList[i];
+      String str2 = str1.indexOf("//") != -1 ? str1.split("//")[0] : str1;
+      if (!paramString.equalsIgnoreCase(str2))
+        continue;
+      LowcaseColumnRowMapper localLowcaseColumnRowMapper = new LowcaseColumnRowMapper();
+      cacheOneTable(localLowcaseColumnRowMapper, this.tableList[i]);
+      return;
+    }
+  }
+}

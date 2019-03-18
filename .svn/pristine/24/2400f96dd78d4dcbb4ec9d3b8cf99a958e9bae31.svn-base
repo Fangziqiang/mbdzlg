@@ -1,0 +1,170 @@
+package com.jadlsoft.model.session;
+
+import java.awt.Menu;
+import java.io.Serializable;
+import java.util.List;
+
+
+@SuppressWarnings("serial")
+public class UserSessionBean extends BaseUserSession implements Serializable {
+
+	/**
+	 * 过滤字段
+	 */
+	private String xzqh;
+	/**
+	 * 行政区划名称
+	 */
+	private String xzqh_cn;
+	/**
+	 * 短的行政区划（长度：2位 或者 4位 或者 6位），用于控制用户的访问权限
+	 */
+	private String Shortxzqh;
+	
+	/**
+	 * 用户的功能代码
+	 */
+	@SuppressWarnings("unchecked")
+	private List gndm;
+	/**
+	 * 登陆IP
+	 */
+	private String loginip;
+	/**
+	 * 用户类型
+	 */
+	private String yhlx;
+	/**
+	 * 是否是管理员
+	 */
+	private boolean isAdmin;
+	
+	/**
+	 * 用户主键
+	 */
+	private String id;
+	
+	/**
+	 * 行政区划
+	 */
+	private String zXzqh;
+	
+	private String ticket;
+	
+	private List<Menu> menuList;
+	
+	/**
+	 * 用户级别
+	 */
+	private int yhjb;
+	
+	private String bpzydwlb;//爆破作业单位类别  zhangsanjie add 20160503
+	
+	
+	
+	public String getBpzydwlb() {
+		return bpzydwlb;
+	}
+	public void setBpzydwlb(String bpzydwlb) {
+		this.bpzydwlb = bpzydwlb;
+	}
+	public int getYhjb() {
+		return yhjb;
+	}
+	public void setYhjb(int yhjb) {
+		this.yhjb = yhjb;
+	}
+	public String getTicket() {
+		return ticket;
+	}
+	public void setTicket(String ticket) {
+		this.ticket = ticket;
+	}
+	public List<Menu> getMenuList() {
+		return menuList;
+	}
+	public void setMenuList(List<Menu> menuList) {
+		this.menuList = menuList;
+	}
+	private String firstPageUrl;
+
+	public String getFirstPageUrl() {
+		return firstPageUrl;
+	}
+
+	public void setFirstPageUrl(String firstPageUrl) {
+		this.firstPageUrl = firstPageUrl;
+	}
+	public String getShortxzqh() {
+		return Shortxzqh;
+	}
+
+	public void setShortxzqh(String shortxzqh) {
+		Shortxzqh = shortxzqh;
+	}
+
+	public String getXzqh() {
+		return xzqh;
+	}
+
+	public void setXzqh(String xzqh) {
+		this.xzqh = xzqh;
+	}
+
+	public String getXzqh_cn() {
+		return xzqh_cn;
+	}
+
+	public void setXzqh_cn(String xzqh_cn) {
+		this.xzqh_cn = xzqh_cn;
+	}
+
+	public List getGndm() {
+		return gndm;
+	}
+
+	public void setGndm(List gndm) {
+		this.gndm = gndm;
+	}
+
+	public String getLoginip() {
+		return loginip;
+	}
+
+	public void setLoginip(String loginip) {
+		this.loginip = loginip;
+	}
+
+	public String getYhlx() {
+		return yhlx;
+	}
+
+	public void setYhlx(String yhlx) {
+		this.yhlx = yhlx;
+	}
+
+	public boolean isAdmin() {
+		return isAdmin;
+	}
+
+	public void setAdmin(boolean isAdmin) {
+		this.isAdmin = isAdmin;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getZXzqh() {
+		return zXzqh;
+	}
+
+	public void setZXzqh(String xzqh) {
+		zXzqh = xzqh;
+	}
+	
+}

@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jadlsoft-jaly>
+	<!--
+				url: 链接方式
+			 gncode: 对应功能代码
+		 managetype: 数据管理方式（0: 无限制, 1: 本地管理, 2: 属地管理, 3: 市局、省厅所有的权限、4: 省厅独有权限）
+		manageparam: 管理参数，列表查询使用queryparamter[字段名称]，其中queryparamter可以省略 
+		  paramname: 功能参数名称
+		 paramvalue: 功能参数值
+	-->
+
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 系统管理 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	<item url="/index/index_index.action" gncode="" managetype="0" manageparam="" />
+	<item url="/index/text" gncode="" managetype="0" manageparam="" />
+	
+	<item url="/login/login!toHomePage.action" gncode="" managetype="0" manageparam="" />
+	
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 服务管理 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	<item url="/service/service_searchPerson.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/service_deleteAuthorUser.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/service_saveAuthorUser.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/service_saveAuthor.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/service_toAuthorUser.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/service_authorService.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/serviceCheck_isLegalService.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/service_deleteIntegrateShip.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/service_integrate.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/service_integrateService.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/service_serviceRelationShip.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/service_previewService.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/service_afterService.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/service_myService.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/service_allService.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/service_allService!seeService.action" gncode="" managetype="0" manageparam="" />
+<!-- 	<item url="/service/service_buyService.action" gncode="" managetype="0" manageparam="" /> -->
+	<item url="/service/shoppingCart_addToShoppingCart.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/shoppingCart_myShoppingCart.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/shoppingCart_removeToShoppingCart.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/order_submitOrder.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/order_payOrder.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/order_myOrder.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/service_enterService.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/service_addIntegrateService.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/service_saveIntegrateService.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/service_deleteDependencyService.action" gncode="" managetype="0" manageparam="" />
+	<!-- 服务评价 -->
+	<item url="/service/fwpj_searchFwpjService.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/fwpj_getFwpjService.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/fwpj_saveFwpj.action" gncode="" managetype="0" manageparam="" />
+	
+	<item url="/service/service_toHomePage.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/shoppingCart_updateShoppingCart.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/serviceCommentlist.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/shoppingCart_myShoppingCartQr.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/shoppingCart_getShoppingNum.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/service_viewBpzyxcRyYjList.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/service_getSytj.action" gncode="" managetype="0" manageparam="" />
+	<!-- zhangsanjie add 2016-05-18 -->
+	<item url="/service/service_getOverspeedCarAndBpzyryYjNum.action" gncode="" managetype="0" manageparam="" />
+	<!-- mahe -->
+	<item url="/service/service_getOverspeedCarManager.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/service_getOverspeedCarJbxx.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/service_getOverspeedCarNum.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/service_getYujingxx.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/service_getShebeiYiChang.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/service_readOver.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/service_updateMenu.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/userService.action" gncode="" managetype="0" manageparam="" />
+	<!-- <item url="/service/registerTestUser_saveTestUser.action" gncode="" managetype="0" manageparam="" /> -->
+	<item url="/htxm/contract_addContractByTestUser.action" gncode="" managetype="0" manageparam="" />
+	<item url="/htxm/contract_toSaveContract.action" gncode="" managetype="0" manageparam="" />
+	<item url="/htxm/contract_sfyjczhtxx.action" gncode="" managetype="0" manageparam="" />
+	<item url="/htxm/contract_sfyjczhtxxByUserid.action" gncode="" managetype="0" manageparam="" />
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 个人设置 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	<item url="/setting/setting_viewSignedUnit.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_signBranchUnit.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_showDetail.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_showUnitDetail.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_saveSignUnit.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_unitDetail.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_searchUnit.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_signUnit.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_savePassword.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_updatePassword.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_deleteDepartment.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_saveDepartment.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_updateDepartment.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_signDepartment.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_signUser.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_saveUser.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_checkLoginId.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_updateUser.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_deleteUser.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/unitlist.action" gncode="" managetype="0" manageparam="" />
+	<!-- zsj add -->
+	<item url="/setting/unitadminlist.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_toSignQyadminczUnit.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_saveSignQyadminczUnit.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_querySignQyadminczUnit.action" gncode="" managetype="0" manageparam="" />
+	
+	<item url="/setting/setting_signUnitUser.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_sqfw.action" gncode="" managetype="0" manageparam="" />
+	
+	<item url="/setting/setting_toSaveSignUnit.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_querySignUnit.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_toSaveAdminUser.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_saveAdminUser.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_checkUserName.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_queryAdminUser.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_queryUser.action" gncode="" managetype="0" manageparam="" />
+	
+	<item url="/setting/setting_toSaveDmsp.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/setting_saveDmsp.action" gncode="" managetype="0" manageparam=""/>
+	<item url="/setting/setting_queryDmsp.action" gncode="" managetype="0" manageparam=""/>
+	
+	<item url="/setting/setting_getVpId.action" gncode="" managetype="0" manageparam=""/>
+	<item url="/setting/setting_spView.action" gncode="" managetype="0" manageparam=""/>
+	<item url="/setting/setting_splxView.action" gncode="" managetype="0" manageparam=""/>
+	<item url="/setting/setting_checkLxdh.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/unituserlist.action" gncode="" managetype="0" manageparam="" />
+	<!-- zsj add 2016-05-30 15:57 -->
+	<item url="/setting/setting_testToAdmin.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/zhuce/zhuce_registerTestUser.action" gncode="" managetype="0" manageparam="" />
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 视频设置 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ --> 
+	<item url="/spjk/spjk_spdList.action" gncode="" managetype="0" manageparam="" />
+	<item url="/spjk/spjk_dvrEdit.action" gncode="" managetype="0" manageparam="" />
+	 
+</jadlsoft-jaly>

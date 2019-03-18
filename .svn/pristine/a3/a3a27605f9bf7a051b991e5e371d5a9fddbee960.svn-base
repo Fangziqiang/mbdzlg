@@ -1,0 +1,215 @@
+package com.jadlsoft.business.Yhfw;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
+import com.core.business.BaseManager;
+import com.jadlsoft.domain.DzlgReqBean;
+import com.jadlsoft.domain.UserBean;
+import com.jadlsoft.domain.YhfwBean;
+import com.jadlsoft.utils.DateUtils;
+import com.jadlsoft.utils.MBDZLGConstant;
+
+
+public class YhfwManager extends BaseManager  {
+	private Logger logger = Logger.getLogger(YhfwManager.class);
+	/**
+	 * http请求解析返回信息
+	 * @Title:
+	 * @author fandengyong
+	 * @参数: @param str
+	 * @date 2017-7-27 上午11:39:31
+	 */
+	public void saveHttpSqInfo(DzlgReqBean dzlgReqBean,String str) {
+		//1、判断返回信息
+		this.makeError(dzlgReqBean, str);
+		//解析返回信息，组装保存用户信息bean
+		YhfwBean yhfwxx = this.addYhfwData( dzlgReqBean);
+		///保存用户访问信息
+		this.saveYHfw(yhfwxx);
+	}
+	/**
+	 * 判断返回的错误信息
+	 * @Title:
+	 * @author fandengyong
+	 * @参数: @param dzlgReqBean
+	 * @参数: @param str
+	 * @date 2017-7-30 下午4:45:52
+	 */
+	private void makeError(DzlgReqBean dzlgReqBean,String str) {
+		if(str != null && !"".equals(str)){
+			//表示是下载，且下载成功
+			if(str.length() > 15){
+				dzlgReqBean.setError(MBDZLGConstant.CORRECT);
+			}else{
+				String fhxx = str.substring(str.indexOf(":")+2, str.length() - 3);
+				//使用上报返回   {'success':'fail'}    {'success':'true'}
+				//密码下载失败、位置上报返回 返回   {'cwxx':'错误信息'} 
+				if("true".equals(fhxx)){
+					dzlgReqBean.setError(MBDZLGConstant.ERROR_SYSB_TRUE);
+				}else if("fail".equals(fhxx)){
+					dzlgReqBean.setError(MBDZLGConstant.ERROR_SYSB_FAIL);
+				}else{
+					dzlgReqBean.setError(Integer.parseInt(fhxx));
+				}
+				
+			}
+		}
+	}
+	/**
+	 * http请求组装请求返回信息
+	 * @Title:
+	 * @author fandengyong
+	 * @参数: @param str
+	 * @date 2017-7-27 上午11:45:31
+	 */
+	private YhfwBean addYhfwData(DzlgReqBean dzlgReqBean) {
+		YhfwBean yhfwxx = new YhfwBean();
+		if( dzlgReqBean == null ){
+			return null;
+		}
+		//设置访问类型
+		if(dzlgReqBean.getDataType() != null ){
+			if(dzlgReqBean.getDataType() == MBDZLGConstant.DATATYPE_HTTP_LXXZ){
+				yhfwxx.setDataType(MBDZLGConstant.HTTP_LXXZ);
+			}
+			if(dzlgReqBean.getDataType() == MBDZLGConstant.DATATYPE_HTTP_ZZXZ){
+				yhfwxx.setDataType(MBDZLGConstant.HTTP_ZXXZ);
+			}
+			if(dzlgReqBean.getDataType() == MBDZLGConstant.DATATYPE_HTTP_QBQWZSB){
+				yhfwxx.setDataType(MBDZLGConstant.HTTP_WEZB);
+			}
+			if(dzlgReqBean.getDataType() == MBDZLGConstant.DATATYPE_HTTP_SYXXSB){
+				yhfwxx.setDataType(MBDZLGConstant.HTTP_SYSB);
+			}
+			if(dzlgReqBean.getDataType() == MBDZLGConstant.DATATYPE_HTTP_GXGZ){
+				yhfwxx.setDataType(MBDZLGConstant.HTTP_GXGZ);
+			}
+		}
+	
+		//解析返回错误信息
+		int error = dzlgReqBean.getError();
+		if(error == MBDZLGConstant.CORRECT){
+			if(dzlgReqBean.getDataType() == MBDZLGConstant.DATATYPE_HTTP_SYXXSB){
+				yhfwxx.setFh(MBDZLGConstant.FH_SYSB_TRUE);
+			}else{
+				yhfwxx.setFh(MBDZLGConstant.FH_ERROR_JX_0);
+			}
+		}
+		if(error == MBDZLGConstant.ERROR_REQ){
+			if(dzlgReqBean.getDataType() == MBDZLGConstant.DATATYPE_HTTP_SYXXSB){
+				yhfwxx.setFh(MBDZLGConstant.FH_SYSB_FAIL);
+			}else{
+				yhfwxx.setFh(MBDZLGConstant.FH_ERROR_JX_1);
+			}
+		}
+		if(error == MBDZLGConstant.ERROR_NOFONDXZQH){
+			yhfwxx.setFh(MBDZLGConstant.FH_ERROR_JX_2);
+		}
+		if(error == MBDZLGConstant.ERROR_QBQ_WSSRW){
+			yhfwxx.setFh(MBDZLGConstant.FH_ERROR_JX_3);
+		}
+		if(error == MBDZLGConstant.ERROR_QBQ_HMD){
+			yhfwxx.setFh(MBDZLGConstant.FH_ERROR_JX_4);
+		}
+		if(error == MBDZLGConstant.ERROR_ZB_QYW){
+			yhfwxx.setFh(MBDZLGConstant.FH_ERROR_JX_5);
+		}
+		if(error == MBDZLGConstant.ERROR_JB_QYWQQ){
+			yhfwxx.setFh(MBDZLGConstant.FH_ERROR_JX_6);
+		}
+		if(error == MBDZLGConstant.ERROR_QBQ_YZX){
+			yhfwxx.setFh(MBDZLGConstant.FH_ERROR_JX_7);
+		}
+		if(error == MBDZLGConstant.ERROR_JB_RWJB){
+			yhfwxx.setFh(MBDZLGConstant.FH_ERROR_JX_8);
+		}
+		if(error == MBDZLGConstant.ERROR_HTTP_ZY_HTZZXM){
+			if(MBDZLGConstant.JKLX_HTTP.equals(dzlgReqBean.getJklx())){
+				yhfwxx.setFh(MBDZLGConstant.FH_ERROR_JX_HTTP_9);
+			}
+		}
+		if(error == MBDZLGConstant.ERROR_HTTP_YYXDW_BXSZHTHXM){
+			if(MBDZLGConstant.JKLX_HTTP.equals(dzlgReqBean.getJklx())){
+				yhfwxx.setFh(MBDZLGConstant.FH_ERROR_JX_HTTP_10);
+			}
+		}
+		if(error == MBDZLGConstant.ERROR_HTTP_LXXZ_BZCSCCJSB){
+			if(MBDZLGConstant.JKLX_HTTP.equals(dzlgReqBean.getJklx())){
+				yhfwxx.setFh(MBDZLGConstant.FH_ERROR_JX_HTTP_11);
+			}
+		}
+		if(error == MBDZLGConstant.ERROR_ZYRW_JBQY){
+			yhfwxx.setFh(MBDZLGConstant.FH_ERROR_JX_12);
+		}
+		if(error == MBDZLGConstant.ERROR_CONNECT){
+			yhfwxx.setFh(MBDZLGConstant.FH_ERROR_JX_99);
+		}
+		
+		
+		
+		if(dzlgReqBean.getDwdm() != null && !"".equals(dzlgReqBean.getDwdm())){
+			yhfwxx.setDwdm(dzlgReqBean.getDwdm());
+		}
+		if(dzlgReqBean.getJklx() != null && !"".equals(dzlgReqBean.getJklx())){
+			yhfwxx.setJklx(dzlgReqBean.getJklx());
+		}
+		if(dzlgReqBean.getXzqh() != null && !"".equals(dzlgReqBean.getXzqh())){
+			yhfwxx.setXzqh(dzlgReqBean.getXzqh());
+		}
+		if(dzlgReqBean.getQbqbh() != null && !"".equals(dzlgReqBean.getQbqbh())){
+			yhfwxx.setQbqbh(dzlgReqBean.getQbqbh());
+		}
+		if(dzlgReqBean.getHtid() != null && !"".equals(dzlgReqBean.getHtid())){
+			yhfwxx.setHtid(dzlgReqBean.getHtid());
+		}
+		if(dzlgReqBean.getXmbh() != null && !"".equals(dzlgReqBean.getXmbh())){
+			yhfwxx.setXmbh(dzlgReqBean.getXmbh());
+		}
+		//yhfwxx.setFwsj(DateUtils.getCurrentDate("yyyy-MM-dd HH:mm：ss "));
+		yhfwxx.setFwsj(DateUtils.getCurrentDate("yyyy-MM-dd HH:mm：ss "));
+		if(dzlgReqBean.getXtm() != null ){
+			yhfwxx.setXtm(dzlgReqBean.getXtm().size()+"");
+		}
+		if(dzlgReqBean.getHtm() != null ){
+			yhfwxx.setHtm(dzlgReqBean.getHtm().size()+"");
+		}
+		if(dzlgReqBean.getFbh() != null ){
+			yhfwxx.setFbh(dzlgReqBean.getFbh().size()+"");
+		}
+		if(dzlgReqBean.getJd() != null && !"".equals(dzlgReqBean.getJd())){
+			yhfwxx.setJd(dzlgReqBean.getJd());
+		}
+		if(dzlgReqBean.getWd() != null && !"".equals(dzlgReqBean.getWd())){
+			yhfwxx.setWd(dzlgReqBean.getWd());
+		}
+		if(dzlgReqBean.getBpsj() != null && !"".equals(dzlgReqBean.getBpsj())){
+			yhfwxx.setBpsj(dzlgReqBean.getBpsj());
+		}
+		if(dzlgReqBean.getBprysfz() != null && !"".equals(dzlgReqBean.getBprysfz())){
+			yhfwxx.setBprysfz(dzlgReqBean.getBprysfz());
+		}
+		if(dzlgReqBean.getUidList() != null ){
+			
+			yhfwxx.setLguid(dzlgReqBean.getUidList().size()+"");
+		}
+		return yhfwxx;
+	}
+	/**
+	 * 保存请求信息
+	 * @Title:
+	 * @author fandengyong
+	 * @参数: @param yhfw
+	 * @date 2017-7-30 下午4:47:44
+	 */
+	private void saveYHfw(YhfwBean yhfw){
+		int nextval = daoUtils.getNextval("Q_DZLG_YHFW");
+		yhfw.setId(nextval+"");
+		daoUtils.save(yhfw);
+		logger.error("用户访问信息保存成功！");
+	}
+	
+}

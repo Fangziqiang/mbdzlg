@@ -1,0 +1,72 @@
+package com.jadlsoft.webServices;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.jadlsoft.business.dzlg.DzlgManager;
+import com.jadlsoft.utils.JsonUtils;
+import com.core.utils.SpringBeanFactory;
+
+
+public class WlfwptServiceImp implements WlfwptService {
+
+	/**
+	 * 网络服务平台同步作业任务
+	 * @throws Exception 
+	 */
+	public String  zyrwTb(String jsonStr)  {
+		DzlgManager dzlgManager = (DzlgManager) SpringBeanFactory.getBean("dzlgManager");
+		List jsonList;
+		try {
+			jsonList = JsonUtils.getList4Json(jsonStr);
+		} catch (Exception e) {
+			jsonList = null;
+			e.printStackTrace();
+		}
+		Map map = new HashMap();
+		String czlx;
+		List insert_List  = new ArrayList();
+		List update_List  = new ArrayList();
+		List del_List  = new ArrayList();
+		List list = new ArrayList();
+		for (int i = 0; i < jsonList.size(); i++) {
+			map = (Map) jsonList.get(i);
+			czlx = map.get("czlx").toString();
+			if("1".equals(czlx)){// 添加
+				insert_List.add(map);
+			}else if("".equals(czlx)){//更新
+				update_List.add(map);
+			}else if("2".equals(czlx)){//删除
+				del_List.add(map);
+			}
+		}
+		if(del_List.size() > 0){
+			dzlgManager.qxZyrw(del_List,list);
+		}
+		if(insert_List.size() > 0){
+			dzlgManager.szZyrw(insert_List,list);
+		}
+		if(update_List.size() > 0){
+			dzlgManager.bgZyrw(update_List,list);
+		}
+		return JsonUtils.listToJsonArray(list);
+	}
+	
+	/**
+	 * 验证起爆器编号是否已经使用
+	 */
+	public String getQbqbhIsBa(String qbqbh) {
+		DzlgManager dzlgManager = (DzlgManager) SpringBeanFactory.getBean("dzlgManager");
+		List list = dzlgManager.getQbqbhList(qbqbh);
+		String msg = "";
+		if(list.size() > 0){
+			msg = "true";
+		}else{
+			msg = "false";
+		}
+		return msg;
+	}
+	
+}

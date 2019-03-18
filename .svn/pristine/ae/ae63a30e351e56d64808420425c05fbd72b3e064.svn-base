@@ -1,0 +1,92 @@
+package com.jadlsoft.struts.action.dzlg;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import net.sf.json.JSONObject;
+
+import org.apache.log4j.Logger;
+
+import com.jadlsoft.business.dzlg.DzlgManager;
+import com.jadlsoft.business.dzlg.DzlgParseUtil;
+import com.jadlsoft.domain.DzlgReqBean;
+import com.jadlsoft.utils.JsonUtils;
+import com.jadlsoft.utils.MBDZLGConstant;
+import com.jadlsoft.utils.SpringBeanFactory;
+import com.jadlsoft.utils.TripleDES3_DzlgMmxz;
+import com.jit.util.Base64;
+/**
+ * 
+ * 规则更新【http方式】
+ * @author wujiaxu
+ * @Time 2017-7-31 下午4:13:44
+ *
+ */
+public class JsonGxgzAction extends HttpServlet {
+	private static Logger logger = Logger.getLogger(JsonGxgzAction.class);
+	public void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		this.doPost(request, response);
+	}
+
+	public void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		DzlgManager dzlgManager = (DzlgManager) SpringBeanFactory
+				.getBean("dzlgManager");
+		response.setCharacterEncoding("utf-8");
+		PrintWriter out = response.getWriter();
+		String str = null;
+		DzlgReqBean dzlgReqBean = null;
+		String param = request.getParameter("param");
+		//获取加密的请求参数
+		if(param == null || "".equals(param)){
+			Map map = new HashMap();
+			map.put("cwxx", MBDZLGConstant.ERROR_REQ+"");
+			JSONObject jsObj = JSONObject.fromObject(map);
+			str = Base64.encode(TripleDES3_DzlgMmxz.encode(jsObj.toString()));
+			logger.info("===============【离线下载】参数为空——>"+MBDZLGConstant.SYSTEMINFO+"返回数据："+str);
+			out.print(str);
+		}
+		try {
+			//解密
+			param = TripleDES3_DzlgMmxz.decode(Base64.decode(param));
+			Map map = JsonUtils.getMap4Json(param);
+			// 读取请求内容
+			String sbbh = (String) map.get("sbbh");
+			String jd = (String) map.get("jd");
+			String wd = (String) map.get("wd");
+			String dwdm = (String) map.get("dwdm");
+			String htid = (String) map.get("htid");
+			String xmbh = (String) map.get("xmbh");
+			/**
+			 * 1、封装数据
+			 */
+			dzlgReqBean = DzlgParseUtil.packHttpGxgz(sbbh, jd, wd, dwdm, htid, xmbh);
+		
+			/**
+			 * 2、向网络服务平台请求
+			 */
+			str = (String) dzlgManager.reqToWlfwpt(dzlgReqBean);
+		} catch (Exception e) {
+			logger.error("***************【规则更新】——>"+MBDZLGConstant.SYSTEMINFO+"处理出错！",e);
+			Map map = new HashMap();
+			map.put("cwxx", MBDZLGConstant.ERROR_REQ+"");
+			JSONObject jsObj = JSONObject.fromObject(map);
+			str = Base64.encode(TripleDES3_DzlgMmxz.encode(jsObj.toString()));
+		}
+		logger.info("===============【规则更新】——>"+MBDZLGConstant.SYSTEMINFO+"返回数据："+str);
+		out.print(str);
+
+		
+		//保存申请记录
+		//YhfwManager yhfwManager = (YhfwManager) SpringBeanFactory.getBean("yhfwManager");
+		//yhfwManager.saveHttpSqInfo(dzlgReqBean,str);
+	}
+}

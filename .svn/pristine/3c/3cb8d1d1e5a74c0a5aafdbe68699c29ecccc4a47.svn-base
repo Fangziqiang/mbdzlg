@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="GBK"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xsi:schemaLocation="
+    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.0.xsd
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.0.xsd">
+
+	<bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean"
+		scope="singleton" lazy-init="default" autowire="default"
+		dependency-check="default">
+	 	<property name="jndiName" value="jdbc_mb"></property>
+        <property name="resourceRef" value="true"></property>    
+	</bean>
+<!--
+	
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"/>
+		<property name="url" value="jdbc:oracle:thin:@192.168.20.32:1521:gx"/>
+		<property name="username" value="us_jaly"/>
+		<property name="password" value="jaly2007"/>
+	</bean>
+
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"/>
+		<property name="url" value="jdbc:oracle:thin:@192.168.20.223:1521:orcl"/>
+		<property name="username" value="US_MBADMIN_WLFWPT1"/>
+		<property name="password" value="gaxt2008"/>
+	</bean>
+-->		
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource">
+			<ref local="dataSource" />
+		</property>
+	</bean>
+	
+	<bean id="nativeJdbcExtractor" class="org.springframework.jdbc.support.nativejdbc.CommonsDbcpNativeJdbcExtractor"/>
+	<!-- 
+	<bean id="nativeJdbcExtractor" class="org.springframework.jdbc.support.nativejdbc.WebSphereNativeJdbcExtractor"/>
+	 -->
+	<!-- 
+	<bean id="nativeJdbcExtractor" class="org.springframework.jdbc.support.nativejdbc.WebLogicNativeJdbcExtractor"/>
+	 -->
+	 
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <tx:method name="get*" read-only="true"/>
+            <tx:method name="*" rollback-for="BaseAppException"/>
+        </tx:attributes>
+    </tx:advice>
+    
+	<aop:config>
+		<aop:advisor pointcut="execution(* com.jadlsoft.business..*(..))" advice-ref="txAdvice"/>
+		<aop:advisor pointcut="execution(* com.jadlsoft.ftpclient.business..*(..))" advice-ref="txAdvice"/>
+	</aop:config>
+	
+	<bean id="daoUtils" class="com.jadlsoft.dbutils.DaoUtils" init-method="init">
+		<property name="dataSource">
+			<ref local="dataSource" />
+		</property>
+		<property name="nje">
+			<ref local="nativeJdbcExtractor" />
+		</property>
+		<property name="tableList">
+			<list>		
+				<value>t_dw_wlfwptdz</value>
+			</list>
+		</property>
+		<property name="keyColumn" value="dm" />
+		<property name="saveLog" value="true" />
+		<property name="sqlLocate" value="" />
+		<property name="dicConfigFile" value="" />
+	</bean>
+	
+	<bean id="logUtils" class="com.jadlsoft.business.LogUtils">
+		<property name="daoUtils">
+			<ref local="daoUtils" />
+		</property>
+	</bean>	
+	
+	<bean id="baseManager" class="com.jadlsoft.business.BaseManager" abstract="true">
+		<property name="daoUtils">
+			<ref local="daoUtils" />
+		</property>
+		<property name="logUtils">
+			<ref local="logUtils" />
+		</property>
+	</bean>
+	
+	
+	<!-- 电子雷管 -->
+	<bean id="dzlgManager" class="com.jadlsoft.business.dzlg.DzlgManager" parent="baseManager" ></bean>
+</beans>

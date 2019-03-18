@@ -1,0 +1,66 @@
+package com.core.business.zdgl;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import com.core.dbutils.DicMapUtils;
+
+public class ZdglManager {
+	/**
+	 * 获取字典表的MAP
+	 * @param key app;ication.xml配置的字典表表名
+	 * @return
+	 */
+	public static Map getDm(String key){
+		return (Map)(DicMapUtils.getInstance().getDicMapCacheForTranslate().get(key));
+	}
+	
+	/**
+	 * 获取字典表的MAP
+	 * @param key app;ication.xml配置的字典表表名
+	 * @return
+	 */
+	public static List getDmList(String key){
+		return (List)(DicMapUtils.getInstance().getDicMapCache().get(key));
+
+	}
+	
+	/**
+	 * 根据行政区划代码获取行政区划名称
+	 * @param xzqhdm 行政区划代码
+	 * @return 行政区划名称
+	 */
+	public static String getXzqhmcByDm(String xzqhdm){
+		Map xzqhListMap = getDm("t_dm_xzqh");
+		Map xzqhMap = (Map)xzqhListMap.get(xzqhdm);
+		//modify by WangQing 2014-03-11 16:49,解决当传入的xzqhdm在字典表中不存在时程序抛异常问题
+		return xzqhMap==null?"":(String)xzqhMap.get("mc");
+	}
+	
+	
+	/**
+	 * 获取省级行政区划代码
+	 * 张晨光 Mar 11, 2014 11:09:21 AM
+	 * @return  格式为 "110000,220000,370000... ... ,810000"的字符串
+	 */
+	public static String getAllShengjiXzqh() {
+		String pre = "";
+		StringBuffer allXzqhString = new StringBuffer();
+		Map map = getDm("t_dm_xzqh");
+		map.keySet();
+		Iterator it = map.entrySet().iterator();
+		while (it.hasNext()) {
+			Entry entry = (Entry) it.next();
+			String xzqh = (String) entry.getKey();
+			if (xzqh != null && xzqh.endsWith("0000") && !"000000".equals(xzqh)) {
+				allXzqhString.append(pre).append(xzqh);
+			}
+			pre = ",";
+		}
+		return allXzqhString.toString();
+	}
+	
+}

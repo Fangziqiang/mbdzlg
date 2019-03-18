@@ -1,0 +1,49 @@
+package com.jadlsoft.domain;
+
+import java.io.Serializable;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
+
+/**
+ * 领用发放下载密码
+* @ClassName: 
+* @author fandengyong
+* @date 2017-7-27 上午10:27:19
+ */
+//jaxb 解析必须要有默认的构造方法，即无参的构造方法
+@XmlAccessorType(XmlAccessType.FIELD)  
+@XmlRootElement(name = "lyffsq")
+@XmlType(propOrder = { "xlh","my"})  
+
+public class DzlgLyffMmxzBean  {
+	//序列号
+	@XmlElement
+	private String xlh;
+	//密钥
+	@XmlElement
+	private String my;
+	
+	public String getXlh() {
+		return xlh;
+	}
+	public void setXlh(String xlh) {
+		this.xlh = xlh;
+	}
+	public String getMy() {
+		return my;
+	}
+	public void setMy(String my) {
+		this.my = my;
+	}
+	public DzlgLyffMmxzBean() {
+	}
+	public DzlgLyffMmxzBean(String xlh, String my) {
+		this.xlh = xlh;
+		this.my = my;
+	}
+	
+}

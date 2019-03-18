@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-module
+  type="WEB"
+  name="mbdzlg"
+  id="myeclipse.1493173487313"
+  context-root="/mbdzlgtxzx"
+  j2ee-spec="5.0"
+  archive="mbdzlg.war">
+  <attributes>
+    <attribute name="webrootdir" value="WebRoot" />
+  </attributes>
+</project-module>
+

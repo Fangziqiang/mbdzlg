@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<yhfw>
+	<!-- 通过dwdm获取非营业性单位爆破区域 -->
+	<select id="queryQqcs">
+		select qqcs from t_dzlg_yhfw where id =:id
+	</select>
+	
+	<select id="queryFhsj">
+		select fhsj from t_dzlg_yhfw where id =:id
+	</select>
+	<select id="queryQqxx">
+		select qqfs,qqlx from t_dzlg_yhfw where id =:id
+	</select>
+	
+</yhfw>
+
+

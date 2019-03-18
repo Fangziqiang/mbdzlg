@@ -1,0 +1,8 @@
+package com.jadlsoft.webServices;
+
+public interface WlfwptService {
+	
+	public String  zyrwTb(String jsonStr) ;
+	
+	public String getQbqbhIsBa(String qbqbh) ;
+}

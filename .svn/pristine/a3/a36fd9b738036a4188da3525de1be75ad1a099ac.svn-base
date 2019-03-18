@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jadlsoft-jaly>
+	<!--
+				url: 链接方式
+			 gncode: 对应功能代码
+		 managetype: 数据管理方式（0: 无限制, 1: 本地管理, 2: 属地管理, 3: 市局、省厅所有的权限、4: 省厅独有权限）
+		manageparam: 管理参数，列表查询使用queryparamter[字段名称]，其中queryparamter可以省略 
+		  paramname: 功能参数名称
+		 paramvalue: 功能参数值
+	-->
+
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 系统管理 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	<item url="/index/index_index.action" gncode="" managetype="0" manageparam="" />
+	<item url="/index/text" gncode="" managetype="0" manageparam="" />
+	<item url="/login/login!toHomePage.action" gncode="" managetype="0" manageparam="" />
+	<item url="/xzqh/selectXzqh.action" gncode="" managetype="0" manageparam="" />
+	<item url="/demo/demo.html" gncode="" managetype="0" manageparam="" />
+
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 云服务管理 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	
+	<item url="/yfw/service_myService.action" gncode="" managetype="0" manageparam="" />
+	<item url="/yfw/service_serviceShop.action" gncode="" managetype="0" manageparam="" />
+	<item url="/yfw/service_serviceShop!serviceView.action" gncode="" managetype="0" manageparam="" />
+	<item url="/yfw/service_enterService.action" gncode="" managetype="0" manageparam="" />
+	<item url="/service/serviceCommentlist.action" gncode="" managetype="0" manageparam="" />
+	
+	<!--获取购物车和订单数量  -->
+	<item url="/yfw/service_getCartNum.action" gncode="" managetype="0" manageparam="" />
+	<item url="/yfw/service_getOrderNum.action" gncode="" managetype="0" manageparam="" />
+	
+	<!--服务折扣  -->
+	<item url="/yfw/service_fwzklist.action" gncode="" managetype="0" manageparam="" />
+	<item url="/yfw/service_fwzkEdit.action" gncode="" managetype="0" manageparam="" />
+	<item url="/yfw/service_fwzkQuery.action" gncode="" managetype="0" manageparam="" />
+	<item url="/yfw/service_fwzkView.action" gncode="" managetype="0" manageparam="" />
+	<item url="/yfw/service_saveFwzk.action" gncode="" managetype="0" manageparam="" />
+	<item url="/yfw/service_updateFwzk.action" gncode="" managetype="0" manageparam="" />
+	<item url="/yfw/service_deleteFwzk.action" gncode="" managetype="0" manageparam="" />
+	<item url="/yfw/service_checkFwzkByDwdm.action" gncode="" managetype="0" manageparam="" />
+	<item url="/yfw/service_checkFwzkByXzqh.action" gncode="" managetype="0" manageparam="" />
+	
+	
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 产品采购管理 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	<!--购物车  -->
+	<item url="/cpcg/cart_shoppingCartEdit.action" gncode="" managetype="0" manageparam="" />
+	<item url="/cpcg/cart_addGoods.action" gncode="" managetype="0" manageparam="" />
+	<item url="/cpcg/cart_deleteGoods.action" gncode="" managetype="0" manageparam="" />
+	<item url="/cpcg/cart_myCart.action" gncode="" managetype="0" manageparam="" />
+	<item url="/cpcg/cart_deleteGoodsChecked.action" gncode="" managetype="0" manageparam="" />
+	<item url="/cpcg/cart_goodsIsYx_ajax.action" gncode="" managetype="0" manageparam="" />
+	<item url="/cpcg/cart_taoCanView.action" gncode="" managetype="0" manageparam="" />
+	<item url="/cpcg/cart_updateGoodsNum.action" gncode="" managetype="0" manageparam="" />
+	<item url="/cpcg/cart_cgxxEdit.action" gncode="" managetype="0" manageparam="" />
+	<item url="/cpcg/cart_saveCgxx.action" gncode="" managetype="0" manageparam="" />
+	
+	<!--订单  -->
+	<item url="/cpcg/orders_ordersView.action" gncode="" managetype="0" manageparam="" />    
+    <item url="/cpcg/orders_toAccount.action" gncode="" managetype="0" manageparam="" />
+    <item url="/cpcg/orders_account.action" gncode="" managetype="0" manageparam="" />
+    <item url="/cpcg/orders_myOrderPay.action" gncode="" managetype="0" manageparam="" /> 
+    <item url="/cpcg/orders_ordersQuery.action" gncode="" managetype="0" manageparam="" /> 
+    <item url="/cpcg/orders_deleteOrders.action" gncode="" managetype="0" manageparam="" /> 
+    <item url="/cpcg/pay_toPay.action" gncode="" managetype="0" manageparam="" /> 
+    <item url="/cpcg/orders_asynPayCallback.action" gncode="" managetype="0" manageparam="" /> 
+	<item url="/cpcg/orders_payCallback.action" gncode="" managetype="0" manageparam="" /> 
+	
+	
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ OA管理 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	<!-- 套餐管理 -->
+	<item url="/oa/tcgl_SaveTc.action" gncode="" managetype="0" manageparam="" />
+	<item url="/oa/tcgl_deleteTc.action" gncode="" managetype="0" manageparam="" />
+	<item url="/oa/tcgl_msView.action" gncode="" managetype="0" manageparam="" />
+	<item url="/oa/tcgl_tcEdit.action" gncode="" managetype="0" manageparam="" />
+	<item url="/oa/tcgl_updateTc.action" gncode="" managetype="0" manageparam="" />
+	<item url="/oa/tcgl_tcQuery.action" gncode="" managetype="0" manageparam="" />
+	
+	<!--用户套餐设置  -->
+	<item url="/oa/userTc_userTcEdit.action" gncode="" managetype="0" manageparam="" />
+	<item url="/oa/userTc_userIsSztc_ajax.action" gncode="" managetype="0" manageparam="" />
+	<item url="/oa/userTc_saveUserTc.action" gncode="" managetype="0" manageparam="" />
+	<item url="/oa/userTc_updateUserTc.action" gncode="" managetype="0" manageparam="" />
+	<item url="/oa/userTc_userTcView.action" gncode="" managetype="0" manageparam="" />
+	<item url="/oa/userTc_deleteUserTc.action" gncode="" managetype="0" manageparam="" />
+	<item url="/oa/userTc_userTcQuery.action" gncode="" managetype="0" manageparam="" />
+		
+	<!-- 客户咨询管理 -->
+	<item url="/oa/fwxxlist.action" gncode="" managetype="0" manageparam="" />
+	<item url="/oa/fkxx_fwxxHandler.action" gncode="" managetype="0" manageparam="" />
+	<item url="/oa/fkxx_saveFkyj.action" gncode="" managetype="0" manageparam="" />
+	
+	
+	<!-- 服务评价 -->
+	
+	
+	
+	
+	<item url="/yfw/service_toHomePage.action" gncode="" managetype="0" manageparam="" />
+	
+	<item url="/service/serviceCommentlist.action" gncode="" managetype="0" manageparam="" />
+	
+	<item url="/yfw/service_viewBpzyxcRyYjList.action" gncode="" managetype="0" manageparam="" />
+	<item url="/yfw/service_getSytj.action" gncode="" managetype="0" manageparam="" />
+	<!-- zhangsanjie add 2016-05-18 -->
+	<item url="/yfw/service_getOverspeedCarAndBpzyryYjNum.action" gncode="" managetype="0" manageparam="" />
+	<!-- mahe -->
+	<item url="/yfw/service_getOverspeedCarManager.action" gncode="" managetype="0" manageparam="" />
+	<item url="/yfw/service_getOverspeedCarJbxx.action" gncode="" managetype="0" manageparam="" />
+	<item url="/yfw/service_getOverspeedCarNum.action" gncode="" managetype="0" manageparam="" />
+	<item url="/yfw/service_getYujingxx.action" gncode="" managetype="0" manageparam="" />
+	<item url="/yfw/service_getShebeiYiChang.action" gncode="" managetype="0" manageparam="" />
+	<item url="/yfw/service_readOver.action" gncode="" managetype="0" manageparam="" />
+	<item url="/yfw/service_updateMenu.action" gncode="" managetype="0" manageparam="" />
+	<item url="/yfw/userService.action" gncode="" managetype="0" manageparam="" />
+	<!-- <item url="/service/registerTestUser_saveTestUser.action" gncode="" managetype="0" manageparam="" /> -->
+	<item url="/htxm/contract_addContractByTestUser.action" gncode="" managetype="0" manageparam="" />
+	<item url="/htxm/contract_toSaveContract.action" gncode="" managetype="0" manageparam="" />
+	<item url="/htxm/contract_sfyjczhtxx.action" gncode="" managetype="0" manageparam="" />
+	<item url="/htxm/contract_sfyjczhtxxByUserid.action" gncode="" managetype="0" manageparam="" />
+
+	
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 视频管理 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	
+	<!--视频管理  -->
+	<item url="/szzx/spdlist.action" gncode="" managetype="0" manageparam="" />
+	<item url="/szzx/spgl_spdView.action" gncode="" managetype="0" manageparam="" />
+	<item url="/szzx/spgl_spdEdit.action" gncode="" managetype="0" manageparam="" />
+	<item url="/szzx/spgl_spdQuery.action" gncode="" managetype="0" manageparam=""/>
+	<item url="/szzx/spgl_saveSpd.action" gncode="" managetype="0" manageparam=""/>
+	<item url="/szzx/spgl_updateSpd.action" gncode="" managetype="0" manageparam=""/>
+	<item url="/szzx/spgl_deleteSpd.action" gncode="" managetype="0" manageparam="" />
+	<item url="/szzx/spgl_getVpId.action" gncode="" managetype="0" manageparam=""/>
+	<item url="/szzx/spgl_spdlxView.action" gncode="" managetype="0" manageparam=""/>
+	<item url="/szzx/spgl_dwspIsExist_ajax.action" gncode="" managetype="0" manageparam=""/>
+	
+	<!--视频服务器管理  -->
+	<item url="/szzx/spfwqlist.action" gncode="" managetype="0" manageparam="" />
+	<item url="/szzx/spfwq_saveSpfwq.action" gncode="" managetype="0" manageparam="" />
+	<item url="/szzx/spfwq_updateSpfwq.action" gncode="" managetype="0" manageparam="" />
+	<item url="/szzx/spfwq_deleteSpfwq.action" gncode="" managetype="0" manageparam="" />
+	<item url="/szzx/spfwq_spfwqEdit.action" gncode="" managetype="0" manageparam="" />
+	<item url="/szzx/spfwq_spfwqView.action" gncode="" managetype="0" manageparam="" />
+	<item url="/szzx/spfwq_spfwqQuery.action" gncode="" managetype="0" manageparam="" />
+	<item url="/szzx/spfwq_spfwqIsUsing.action" gncode="" managetype="0" manageparam="" />
+	<item url="/setting/video/video_online.jsp" gncode="" managetype="0" manageparam="" />
+	<item url="/include/video_error.jsp" gncode="" managetype="0" manageparam="" />
+
+	
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 系统管理 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	<!--注册管理  -->
+	<item url="/xtgl/register_registerAdminUser.action" gncode="" managetype="0" manageparam="" />
+	<item url="/xtgl/register_registerUser.action" gncode="" managetype="0" manageparam="" />
+	<item url="/xtgl/register_VIPRegister.action" gncode="" managetype="0" manageparam="" />
+	<item url="/xtgl/register_checkDwUser.action" gncode="" managetype="0" manageparam="" />
+	<item url="/xtgl/register_checkDwTestUser.action" gncode="" managetype="0" manageparam="" />
+	<item url="/xtgl/register_checkDwZzjg.action" gncode="" managetype="0" manageparam="" />
+	<item url="/xtgl/register_checkUserName.action" gncode="" managetype="0" manageparam="" />
+	<item url="/xtgl/register_saveTestUser.action" gncode="" managetype="0" manageparam="" />
+	<item url="/xtgl/register_telephoneYz.action" gncode="" managetype="0" manageparam="" />
+	<item url="/xtgl/register_validateUser.action" gncode="" managetype="0" manageparam="" />
+	<item url="/xtgl/register_getYzm.action" gncode="" managetype="0" manageparam="" />
+    <item url="/xtgl/register_clearYzm.action" gncode="" managetype="0" manageparam="" />
+	<item url="/xtgl/register_saveUser.action" gncode="" managetype="0" manageparam="" />	 
+	<item url="/xtgl/register_checkDwxx.action" gncode="" managetype="0" manageparam="" />
+	 	 
+	 <!--jadl用户  -->
+	 <item url="/xtgl/userlist.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/glyuserlist.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/syyhuserlist.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/wjhuserlist.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/user_userQuery.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/user_turnUser.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/user_userView.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/user_usernameIsExist_ajax.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/user_sjhIsExist_ajax.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/user_getZzjgCountByDwdm_ajax.action" gncode="" managetype="0" manageparam="" />
+	 
+	 <!--激活  -->
+	 <item url="/xtgl/user_jhUser.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/user_userJh.action" gncode="" managetype="0" manageparam="" />
+	
+	 <!--公司管理员  -->	
+	 <item url="/xtgl/user_deleteUser.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/user_userEdit.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/user_userServiceSq.action" gncode="" managetype="0" manageparam="" />	
+	 <item url="/xtgl/user_saveUser.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/user_updateUser.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/user_saveSqService.action" gncode="" managetype="0" manageparam="" />
+			
+	<!--公安用户  -->		
+	 <item url="/xtgl/gayhuserlist.action" gncode="" managetype="0" manageparam="" />	
+	 <item url="/xtgl/user_gayhEdit.action" gncode="" managetype="0" manageparam="" />	
+	 <item url="/xtgl/user_sjhIsExist_ajax.action" gncode="" managetype="0" manageparam="" />		
+	 <item url="/xtgl/user_checkJh.action" gncode="" managetype="0" manageparam="" />		
+	 <item url="/xtgl/user_saveGayh.action" gncode="" managetype="0" manageparam="" />		
+	 <item url="/xtgl/user_updateGayh.action" gncode="" managetype="0" manageparam="" />		
+	 <item url="/xtgl/user_gayhQuery.action" gncode="" managetype="0" manageparam="" />		
+	 <item url="/xtgl/user_gayhView.action" gncode="" managetype="0" manageparam="" />		
+			
+	 <!--个人中心  -->  
+	 <item url="/xtgl/user_pswEdit.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/user_updatePsw.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/grzx_zhgl.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/grzx_loginWsyhxx.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/grzx_getYzm.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/grzx_ddgl.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/grzx_checkPassword.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/grzx_updateUser.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/grzx_updateSjhm.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/grzx_updateEmail.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/grzx_ddgl.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/orderslist.action" gncode="" managetype="0" manageparam="" />
+	 
+	 
+	 
+	 <!-- 组织机构管理 -->
+	 <item url="/xtgl/zzjglist.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/zzjg_zzjgQuery.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/zzjg_zzjgEdit.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/zzjg_zzjgView.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/zzjg_saveZzjg.action" gncode="" managetype="0" manageparam="" /> 
+	 <item url="/xtgl/zzjg_jgmcIsExist_ajax.action" gncode="" managetype="0" manageparam="" /> 
+	 <item url="/xtgl/zzjg_dwIsZc_ajax.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/xtgl/zzjg_updateZzjg.action" gncode="" managetype="0" manageparam="" /> 
+	 <item url="/xtgl/zzjg_deleteZzjg.action" gncode="" managetype="0" manageparam="" /> 
+	 <item url="/xtgl/zzjg_checkJgmc.action" gncode="" managetype="0" manageparam="" /> 
+	 <item url="/xtgl/zzjg_dwIsHasChildrenDw_ajax.action" gncode="" managetype="0" manageparam="" /> 
+	 
+	 <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 门磁管理 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	 <item url="/szzx/mcgllist.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/szzx/mcgl_mcglEdit.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/szzx/mcgl_sbbhIsExist_ajax.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/szzx/mcgl_mcglQuery.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/szzx/mcgl_mcglView.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/szzx/mcgl_deleteMcgl.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/szzx/mcgl_saveMcxx.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/szzx/mcgl_updateMcxx.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/szzx/mcgl_nameIsExist_ajax.action" gncode="" managetype="0" manageparam="" />
+	 
+	 
+	 <item url="/jk/mbycsh_mbycshEdit.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/jk/mbycsh_qxxxinit.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/jk/mbycsh_gayhinit.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/jk/mbycsh_gayhimport.action" gncode="" managetype="0" manageparam="" />
+
+	
+	 <item url="/yhfw/yhfwlist.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/yhfw/yhfwAction_skipyhfwyquery.action" gncode="" managetype="0" manageparam="" />
+</jadlsoft-jaly>

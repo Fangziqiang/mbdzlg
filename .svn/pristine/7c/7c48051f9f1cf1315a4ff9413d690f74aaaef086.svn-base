@@ -1,0 +1,765 @@
+package com.jadlsoft.domain;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
+import org.apache.log4j.Logger;
+
+import com.jadlsoft.utils.MBDZLGConstant;
+import com.jadlsoft.utils.SecretUtils;
+import com.jadlsoft.utils.TripleDES_Socket;
+import com.jadlsoft.utils.jaxb.MapAdapter;
+
+/**
+ * 
+ * 电子雷管接收信息bean【注解支持bean与xml互转】
+ * @author wujiaxu
+ * @Time 2017-7-4 下午4:20:05
+ *
+ */
+@XmlAccessorType(XmlAccessType.FIELD)  
+@XmlRootElement(name = "sq")
+@XmlType(propOrder = {"title","qbqbh", "dwdm", "htid", "xmbh", "xtm", "htm", "fbh", "jd", "wd", "uidList","bpsj" ,"bprysfz" ,"dataTitle","dataType","dataLength","isAddErrorLenth","error","isAddTitle","qbqBean","zbqyList","jbqyList","lgqbmmList","syfs","txxh","txlx","bjdm","xzqh","yxxzlgsl","yxsblgsl","zyxh","jklx"})  
+public class DzlgReqBean {
+	private static Logger logger = Logger.getLogger(DzlgReqBean.class);
+	
+	/*
+	 * 请求头
+	 */
+	private String title;
+	/*
+	 * 数据头
+	 */
+	private Integer dataTitle;
+
+	/*
+	 * 数据类型 
+	 */
+	private Integer dataType;
+	/*
+	 * 数据类型 
+	 */
+	private Integer dataLength;
+	
+	/*
+	 * 起爆器编号
+	 */
+	private String qbqbh;
+	/*
+	 * 单位代码
+	 */
+	private String dwdm;
+	/*
+	 * 合同编号
+	 */
+	
+	private String htid;
+	/*
+	 * 项目编号
+	 */
+	private String xmbh;
+	/*
+	 * 箱条码
+	 */
+	@XmlElementWrapper(name = "xtms")
+    @XmlElement(name = "xtm")
+	private List<String> xtm;
+	/*
+	 * 盒条码
+	 */
+	@XmlElementWrapper(name = "htms")
+    @XmlElement(name = "htm")
+	private List<String> htm;
+	/*
+	 * 发编号
+	 */
+	@XmlElementWrapper(name = "fbhs")
+    @XmlElement(name = "fbh")
+	private List<String> fbh;
+
+	/*
+	 * 芯片号 
+	 */
+	@XmlElementWrapper(name = "lgs")
+    @XmlElement(name = "bh")
+	private List<String> uidList;
+    
+
+	/*
+	 * 雷管起爆密码List
+	 */
+	@XmlJavaTypeAdapter(MapAdapter.class)
+	private List<Map> lgqbmmList;
+	
+	/*
+	 * 经度
+	 */
+	private String jd;
+	/*
+	 * 纬度
+	 */
+	private String wd;
+	
+	
+	/*
+	 * 爆破时间
+	 */
+	private String bpsj;
+
+	/*
+	 * 爆破人员身份证
+	 */
+	private String bprysfz;
+
+	/*
+	 * 起爆器
+	 */
+	private Map<String,String> qbqBean;
+	
+	/*
+	 * 准爆区域List
+	 */
+	@XmlJavaTypeAdapter(MapAdapter.class)
+	private List<Map> zbqyList;
+	
+	/*
+	 * 禁爆区域List
+	 */
+	@XmlJavaTypeAdapter(MapAdapter.class)
+	private List<Map> jbqyList;
+	
+	
+	
+	/*
+	 * 使用方式(试爆、非试爆)
+	 */
+	private String syfs;
+	
+	/*
+	 * 通讯序号
+	 */
+	@XmlElement(name = "sqxh")
+	private String txxh;
+	
+	/*
+	 * 通讯类型
+	 */
+	private String txlx;
+	
+	/*
+	 * 报警代码
+	 */
+	private String bjdm;
+	
+	/*
+	 * 行政区划
+	 */
+	private String xzqh;
+	
+	/*
+	 * 有效下载雷管数量
+	 */
+	private Integer yxxzlgsl = 0;
+	
+	/*
+	 * 有效上报雷管数量
+	 */
+	private Integer yxsblgsl = 0;
+	
+	/*
+	 * 作业序号
+	 */
+	private String zyxh;
+
+	/*
+	 * 错误信息
+	 */
+	private int error;
+	
+	/*
+	 * 返回内容是否组装错误信息长度
+	 */
+	private boolean isAddErrorLenth;
+	/*
+	 * 返回内容是否组装数据头
+	 */
+	private boolean isAddTitle;
+
+	/*
+	 * 接口类型  http socket
+	 */
+	private String jklx;
+	/**
+	 * 
+	 * 输出请求日志
+	 * @author wujiaxu
+	 * @Time 2017-7-7 上午10:01:26
+	 */
+	public void showReqLog(){
+		if(this.dataType != null){
+			switch (this.dataType) {
+			case MBDZLGConstant.DATATYPE_ZXXZ_INP_JS:
+				this.title = MBDZLGConstant.SOCKET_ZXXZ_JS;
+				this.showZxxzLog();//socket在线下载(简式)
+				break;
+			case MBDZLGConstant.DATATYPE_ZXXZ_INP_FS:	
+				this.title = MBDZLGConstant.SOCKET_ZXXZ_FS;
+				this.showZxxzLog();//socket在线下载(复式)
+				break;
+			case MBDZLGConstant.DATATYPE_LXXZ_INP_JS:	
+				this.title = MBDZLGConstant.SOCKET_ZXXZ_JS;
+				this.showLxxzLog();//socket离线下载(简式)
+				break;
+			case MBDZLGConstant.DATATYPE_LXXZ_INP_FS:	
+				this.title = MBDZLGConstant.SOCKET_ZXXZ_FS;
+				this.showLxxzLog();//socket离线下载(复式)
+				break;
+			case MBDZLGConstant.DATATYPE_GXGZ_INP:	
+				this.title = MBDZLGConstant.SOCKET_GZGX;
+				this.showGzgxLog();	//socket更新规则
+				break;
+			case MBDZLGConstant.DATATYPE_QBQWZSB_INP:	
+				this.title = MBDZLGConstant.SOCKET_WZSB;
+				this.showWzsbLog();	//socket起爆器位置上报
+				break;
+			case MBDZLGConstant.DATATYPE_SYXXSB_INP:	
+				this.title = MBDZLGConstant.SOCKET_SYSB;
+				this.showSyxxsbLog();	//socket使用信息上报
+				break;
+			case MBDZLGConstant.DATATYPE_HTTP_ZZXZ:
+				this.title = MBDZLGConstant.HTTP_ZXXZ;
+				this.showZxxzLog();	//http在线下载
+				break;
+			case MBDZLGConstant.DATATYPE_HTTP_LXXZ:
+				this.title = MBDZLGConstant.HTTP_LXXZ;
+				this.showLxxzLog();	//http离线下载
+				break;
+			case MBDZLGConstant.DATATYPE_HTTP_QBQWZSB:
+				this.title = MBDZLGConstant.HTTP_WEZB;
+				this.showWzsbLog();	//http位置上报
+				break;
+			case MBDZLGConstant.DATATYPE_HTTP_SYXXSB:
+				this.title = MBDZLGConstant.HTTP_SYSB;
+				this.showSyxxsbLog();	//http使用信息上报
+				break;
+			case MBDZLGConstant.DATATYPE_HTTP_GXGZ:
+				this.title = MBDZLGConstant.HTTP_GXGZ;
+				this.showGzgxLog();	//http使用信息上报
+				break;
+			default:
+				break;
+			}
+		}
+	}
+	
+	
+	
+	/**
+	 * 更新规则日志
+	 * @param title
+	 * @author wujiaxu
+	 * @Time 2017-7-8 下午12:27:07
+	 */
+	private void showGzgxLog() {
+		logger.info("==============="+this.getTitle()+"请求信息解析成功：");
+		logger.info("===============【参数】起爆器编号："+(this.qbqbh == null ? "" :this.qbqbh));
+		logger.info("===============【参数】经度："+(this.jd == null ? "" :this.jd));
+		logger.info("===============【参数】纬度："+(this.wd == null ? "" :this.wd));
+		logger.info("===============【参数】单位代码："+(this.dwdm == null ? "" :this.dwdm));
+		logger.info("===============【参数】合同ID："+(this.htid == null ? "" :this.htid));
+		logger.info("===============【参数】项目编号："+(this.xmbh == null ? "" :this.xmbh));
+		
+	}
+	
+	/**
+	 * 起爆器位置上报日志
+	 * @param title
+	 * @author wujiaxu
+	 * @Time 2017-7-9 上午11:13:05
+	 */
+	public void showWzsbLog() {
+		logger.info("==============="+this.getTitle()+"请求信息解析成功：");
+		logger.info("===============【参数】起爆器编号："+(this.qbqbh == null ? "" :this.qbqbh));
+		logger.info("===============【参数】经度："+(this.jd == null ? "" :this.jd));
+		logger.info("===============【参数】纬度："+(this.wd == null ? "" :this.wd));
+		logger.info("===============【参数】单位代码："+(this.dwdm == null ? "" :this.dwdm));
+
+	}
+	
+	
+	/**
+	 * 使用信息上报日志
+	 * @param title
+	 * @author wujiaxu
+	 * @Time 2017-7-9 下午12:00:22
+	 */
+	private void showSyxxsbLog() {
+	
+		logger.info("==============="+this.getTitle()+"请求信息解析成功：");
+		logger.info("===============【参数】起爆器编号："+(this.qbqbh == null ? "" :this.qbqbh));
+		logger.info("===============【参数】单位代码："+(this.dwdm == null ? "" :this.dwdm));
+		logger.info("===============【参数】经度："+(this.jd == null ? "" :this.jd));
+		logger.info("===============【参数】纬度："+(this.wd == null ? "" :this.wd));
+		logger.info("===============【参数】爆破人员身份证："+(this.bprysfz == null ? "" :this.bprysfz));
+		logger.info("===============【参数】爆破时间："+(this.bpsj == null ? "" :this.bpsj));
+		logger.info("===============【参数】合同："+(this.htid == null ? "" :this.htid));
+		logger.info("===============【参数】项目："+(this.xmbh == null ? "" :this.xmbh));
+		logger.info("===============【参数】雷管共 "+(this.uidList == null ? 0 : this.uidList.size())+" 发");
+		
+		
+	}
+	
+	
+
+
+	public Integer getDataTitle() {
+		return dataTitle;
+	}
+
+
+
+	public void setDataTitle(Integer dataTitle) {
+		this.dataTitle = dataTitle;
+	}
+
+
+
+	public Integer getDataType() {
+		return dataType;
+	}
+
+
+
+	public void setDataType(Integer dataType) {
+		this.dataType = dataType;
+	}
+
+
+
+	public Integer getDataLength() {
+		return dataLength;
+	}
+
+
+
+	public void setDataLength(Integer dataLength) {
+		this.dataLength = dataLength;
+	}
+
+
+
+	public String getQbqbh() {
+		return qbqbh;
+	}
+
+
+
+	public void setQbqbh(String qbqbh) {
+		this.qbqbh = qbqbh;
+	}
+
+
+
+	public String getDwdm() {
+		return dwdm;
+	}
+
+
+
+	public void setDwdm(String dwdm) {
+		this.dwdm = dwdm;
+	}
+
+
+
+	public String getHtid() {
+		return htid;
+	}
+
+
+
+	public void setHtid(String htid) {
+		this.htid = htid;
+	}
+
+
+
+	public String getXmbh() {
+		return xmbh;
+	}
+
+
+
+	public void setXmbh(String xmbh) {
+		this.xmbh = xmbh;
+	}
+
+
+
+	public List<String> getXtm() {
+		return xtm;
+	}
+
+
+
+	public void setXtm(List<String> xtm) {
+		this.xtm = xtm;
+	}
+
+
+
+	public List<String> getHtm() {
+		return htm;
+	}
+
+
+
+	public void setHtm(List<String> htm) {
+		this.htm = htm;
+	}
+
+
+
+	public List<String> getFbh() {
+		return fbh;
+	}
+
+
+
+	public void setFbh(List<String> fbh) {
+		this.fbh = fbh;
+	}
+
+
+
+	public List<String> getUidList() {
+		return uidList;
+	}
+
+
+
+	public void setUidList(List<String> uidList) {
+		this.uidList = uidList;
+	}
+
+
+
+	public List<Map> getLgqbmmList() {
+		return lgqbmmList;
+	}
+
+
+
+	public void setLgqbmmList(List<Map> lgqbmmList) {
+		this.lgqbmmList = lgqbmmList;
+	}
+
+
+
+	public String getJd() {
+		return jd;
+	}
+
+
+
+	public void setJd(String jd) {
+		this.jd = jd;
+	}
+
+
+
+	public String getWd() {
+		return wd;
+	}
+
+
+
+	public void setWd(String wd) {
+		this.wd = wd;
+	}
+
+
+
+	public String getBpsj() {
+		return bpsj;
+	}
+
+
+
+	public void setBpsj(String bpsj) {
+		this.bpsj = bpsj;
+	}
+
+
+
+	public String getBprysfz() {
+		return bprysfz;
+	}
+
+
+
+	public void setBprysfz(String bprysfz) {
+		this.bprysfz = bprysfz;
+	}
+
+
+
+	public Map<String, String> getQbqBean() {
+		return qbqBean;
+	}
+
+
+
+	public void setQbqBean(Map<String, String> qbqBean) {
+		this.qbqBean = qbqBean;
+	}
+
+
+
+	public List<Map> getZbqyList() {
+		return zbqyList;
+	}
+
+
+
+	public void setZbqyList(List<Map> zbqyList) {
+		this.zbqyList = zbqyList;
+	}
+
+
+
+	public List<Map> getJbqyList() {
+		return jbqyList;
+	}
+
+
+
+	public void setJbqyList(List<Map> jbqyList) {
+		this.jbqyList = jbqyList;
+	}
+
+
+
+	public String getSyfs() {
+		return syfs;
+	}
+
+
+
+	public void setSyfs(String syfs) {
+		this.syfs = syfs;
+	}
+
+
+
+	public String getTxxh() {
+		return txxh;
+	}
+
+
+
+	public void setTxxh(String txxh) {
+		this.txxh = txxh;
+	}
+
+
+
+	public String getTxlx() {
+		return txlx;
+	}
+
+
+
+	public void setTxlx(String txlx) {
+		this.txlx = txlx;
+	}
+
+
+
+	public String getBjdm() {
+		return bjdm;
+	}
+
+
+
+	public void setBjdm(String bjdm) {
+		this.bjdm = bjdm;
+	}
+
+
+
+	public String getXzqh() {
+		return xzqh;
+	}
+
+
+
+	public void setXzqh(String xzqh) {
+		this.xzqh = xzqh;
+	}
+
+
+
+	public int getError() {
+		return error;
+	}
+
+
+
+	public void setError(int error) {
+		this.error = error;
+	}
+
+
+
+	public boolean isAddErrorLenth() {
+		return isAddErrorLenth;
+	}
+
+
+
+	public void setAddErrorLenth(boolean isAddErrorLenth) {
+		this.isAddErrorLenth = isAddErrorLenth;
+	}
+
+
+
+	public boolean isAddTitle() {
+		return isAddTitle;
+	}
+
+
+
+	public void setAddTitle(boolean isAddTitle) {
+		this.isAddTitle = isAddTitle;
+	}
+
+
+
+	public String getJklx() {
+		return jklx;
+	}
+
+
+
+	public void setJklx(String jklx) {
+		this.jklx = jklx;
+	}
+
+
+
+	/**
+	 * 离线下载日志
+	 * @param title
+	 * @author wujiaxu
+	 * @Time 2017-7-8 上午11:33:08
+	 */
+	private void showLxxzLog() {
+		logger.info("==============="+this.getTitle()+"请求信息解析成功：");
+		logger.info("===============【参数】起爆器编号："+(this.qbqbh == null ? "" :this.qbqbh));
+		logger.info("===============【参数】单位代码："+(this.dwdm == null ? "" :this.dwdm));
+		logger.info("===============【参数】合同ID："+(this.htid == null ? "" :this.htid));
+		logger.info("===============【参数】项目编号："+(this.xmbh == null ? "" :this.xmbh));
+		logger.info("===============【参数】箱条码（共"+(this.xtm == null ? 0 : this.xtm.size())+"箱）："+(this.xtm == null ? "" : this.xtm.toString()));
+		logger.info("===============【参数】盒条码（共"+(this.htm == null ? 0 : this.htm.size())+"盒）："+(this.htm == null ? "" : this.htm.toString()));
+		logger.info("===============【参数】发编号（共"+(this.fbh == null ? 0 : this.fbh.size())+"发）："+(this.fbh == null ? "" : this.fbh.toString()));
+		
+
+	}
+	
+	/**
+	 * 在线下载日志
+	 * @param title
+	 * @author wujiaxu
+	 * @Time 2017-7-7 上午10:03:35
+	 */
+	private void showZxxzLog() {
+		logger.info("==============="+this.getTitle()+"请求信息解析成功：");
+		logger.info("===============【参数】起爆器编号："+(this.qbqbh == null ? "" :this.qbqbh));
+		logger.info("===============【参数】单位代码："+(this.dwdm == null ? "" :this.dwdm));
+		logger.info("===============【参数】经度："+(this.jd == null ? "" :this.jd));
+		logger.info("===============【参数】纬度："+(this.wd == null ? "" :this.wd));
+		logger.info("===============【参数】雷管共 "+(this.uidList == null ? 0 : this.uidList.size())+" 发");
+	
+	}
+	
+	
+
+	/**
+	 * 返回错误信息
+	 * @return
+	 * @throws Exception
+	 * @author wujiaxu
+	 * @Time 2017-7-31 下午4:26:59
+	 */
+	public Object getReturnError() throws Exception{
+	
+		if(this.getJklx() != null && MBDZLGConstant.JKLX_HTTP.equals(this.getJklx())){
+			//http请求
+			return  this.getHttpError();
+		}else if(this.getJklx() != null && MBDZLGConstant.JKLX_SOCKET.equals(this.getJklx())){
+			//socket请求
+			return  this.getSocketError();
+		}else{
+			//非法请求
+			return null;
+		}
+	}
+	
+
+	/**
+	 * 获取错误信息【socket】
+	 * @return
+	 * @throws Exception
+	 * @author wujiaxu
+	 * @Time 2017-7-31 下午4:30:36
+	 */
+	public byte[] getSocketError() throws Exception{
+		byte[] err = new byte[]{(byte)this.error} ;
+		//密码下载返回两个字节，{1,1}第一个是错误信息的长度,固定一个字节，第二个是错误信息，使用上报和位置上报返回一个字节，错误信息
+		if(this.isAddErrorLenth){
+			//补充错误信息长度
+			byte[] newByte = new byte[1 + err.length];
+			newByte[0] = (byte) err.length;
+			System.arraycopy(err, 0, newByte, 1, newByte.length-1);
+			return TripleDES_Socket.des3EncodeECB(newByte);
+		}
+		return TripleDES_Socket.des3EncodeECB(err);
+	}
+	
+	/**
+	 * 获取错误信息【http】
+	 * @return
+	 * @author wujiaxu
+	 * @Time 2017-7-31 下午4:30:15
+	 */
+	public String getHttpError() {
+		if(this.dataType != null && MBDZLGConstant.DATATYPE_HTTP_SYXXSB == this.dataType){
+			//使用上报错误信息
+			return "{'success':'"+MBDZLGConstant.ERROR_HTTPSYSB_FAIL+"','cwxx':'"+this.error+"'}";
+		}else{
+			//其他请求错误信息
+			return "{'cwxx':'"+this.error+"'}";
+		}
+	}
+
+
+
+	public String getTitle() {
+		return title+"——>"+MBDZLGConstant.SYSTEMINFO;
+	}
+
+
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+}

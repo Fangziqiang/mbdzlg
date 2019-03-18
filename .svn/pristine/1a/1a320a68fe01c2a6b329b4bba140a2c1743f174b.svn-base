@@ -1,0 +1,98 @@
+package com.jadlsoft.struts.action.dzlg;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import net.sf.json.JSONObject;
+
+import org.apache.log4j.Logger;
+import org.apache.axis.MessageContext;
+import com.core.utils.SpringBeanFactory;
+import com.jadlsoft.business.dzlg.DzlgManager;
+import com.jadlsoft.business.dzlg.DzlgParseUtil;
+import com.jadlsoft.domain.DzlgParseHelper;
+import com.jadlsoft.domain.DzlgReqBean;
+import com.jadlsoft.utils.JsonUtils;
+import com.jadlsoft.utils.MBDZLGConstant;
+import com.jadlsoft.utils.TripleDES3_DzlgMmxz;
+import com.jit.util.Base64;
+
+/**
+ * 
+ * 电子雷管在线请求【http】
+ * @author wujiaxu
+ * @Time 2017-7-20 下午6:00:10
+ *
+ */
+public class JsonMmxzAction extends HttpServlet {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private static Logger logger = Logger.getLogger(JsonMmxzAction.class);
+	private DzlgManager dzlgManager = (DzlgManager) SpringBeanFactory.getBean("dzlgManager");
+	public void doPost(HttpServletRequest request, HttpServletResponse response)
+		throws ServletException, IOException {
+		String str = "";
+		PrintWriter out = response.getWriter();
+		response.setCharacterEncoding("utf-8");
+		DzlgReqBean dzlgReqBean = null;
+		String jmxx = null;
+		/**
+		 * 1、获取请求数据
+		 */
+		String param = request.getParameter("param");
+		logger.info(MBDZLGConstant.LOGINFO_TITLE_SUCCESS+"【在线下载】请求数据——>"+param);
+		//获取加密的请求参数
+		if(param == null || "".equals(param)){
+			logger.info(MBDZLGConstant.LOGINFO_TITLE_FAILE+"【在线下载】参数为空");
+			dzlgReqBean.setError(MBDZLGConstant.ERROR_REQ);
+		}else{
+			try {
+				//1.1、解密
+				jmxx = DzlgParseHelper.decode_http(param);
+				logger.info(MBDZLGConstant.LOGINFO_TITLE_SUCCESS+"【在线下载】请求信息解密成功，解密数据——>"+jmxx);
+				Map map = JsonUtils.getMap4Json(jmxx);
+				 // 读取请求内容
+				String sbbh =  map.get("sbbh") == null ? "" : map.get("sbbh")+"";
+				String jd =  map.get("jd") == null ? "" : map.get("jd")+"";
+				String wd =  map.get("wd") == null ? "" : map.get("wd")+"";
+				String uid = map.get("uid") == null ? "" : map.get("uid")+"";
+				String htid = map.get("htid") == null ? "" : map.get("htid")+"";
+				String xmbh = map.get("xmbh") == null ? "" : map.get("xmbh")+"";
+				String dwdm = map.get("dwdm") == null ? "" : map.get("dwdm")+"";
+				//1.2、封装数据
+				dzlgReqBean = DzlgParseUtil.packHttpMmZxxz(sbbh,  jd, wd, uid,htid,xmbh,dwdm);
+				/**
+				 * 2、请求网络服务平台
+				 */
+				dzlgReqBean = dzlgManager.reqToWlfwpt(dzlgReqBean);
+			} catch (Exception e) {
+				logger.error(MBDZLGConstant.LOGINFO_TITLE_FAILE+"【在线下载】——>"+MBDZLGConstant.SYSTEMINFO+"处理出错！",e);
+				dzlgReqBean.setError(MBDZLGConstant.ERROR_REQ);
+			}
+		
+		}
+		/**
+		 * 3、返回信息
+		 */
+		//3.1、组装信息
+		str = (String) DzlgParseHelper.makeReMsg(dzlgReqBean);
+		//3.2、加密返回
+		logger.info(MBDZLGConstant.LOGINFO_TITLE_SUCCESS+"【在线下载】——>"+MBDZLGConstant.SYSTEMINFO+"返回数据："+str);
+		out.print(DzlgParseHelper.encode_http(str));
+	}
+	
+	public void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		this.doPost(request, response);
+	}
+}

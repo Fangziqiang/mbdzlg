@@ -1,0 +1,24 @@
+package com.jadlsoft.business.login.impl;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.core.business.BaseManager;
+import com.jadlsoft.business.login.LoginManager;
+import com.jadlsoft.domain.UserBean;
+
+public class LoginManagerImpl extends BaseManager implements LoginManager {
+
+	public Map findByUser(String username, String password) {
+		Map condition = new HashMap();
+		condition.put("username", username);
+		condition.put("password", password);
+		List userList = daoUtils.find(UserBean.class, condition);
+		if(userList != null && userList.size()>0){
+			return (Map) userList.get(0);
+		}
+		return null;
+	}
+
+}

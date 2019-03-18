@@ -1,0 +1,94 @@
+package com.jadlsoft.business.dzlg;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.jadlsoft.domain.DzlgxxBean;
+import com.jadlsoft.utils.HexUtil;
+/**
+ * 
+ * 电子雷管解析工具
+ * @author wujiaxu
+ * @Time 2017-7-4 下午5:06:11
+ *
+ */
+public class DzlgParseUtil {
+
+	/**
+	 * 电子雷管密码下载【在线】
+	 * @param b
+	 * @return
+	 * @author wujiaxu
+	 * @Time 2017-7-4 下午5:05:31
+	 */
+	public static DzlgxxBean parseMmxzOnline(byte[] b) {
+		if(b == null || b.length <= 0){
+			return  new DzlgxxBean();
+		}
+		
+		int dataIndex = 0;
+		//1.数据头			（2字节）
+		int dataTitle = HexUtil.convertBytes(b, 0, 2);
+		dataIndex += 2;
+		//2.数据类型			（1字节）
+		int dataType= HexUtil.convertBytes(b,dataIndex, 1);
+		dataIndex += 1;
+		//3.数据总长度		（4字节）
+		int dataLength = HexUtil.convertBytes(b, dataIndex, 4);
+		dataIndex += 4;
+		//4.起爆器设备编号长度	（1字节）
+		int qbqsbbhLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//5.起爆器设备编号		（qbqsbbhLength字节）
+		String qbqsbbh = String.valueOf(HexUtil.convertASCBytesToString(b, dataIndex, qbqsbbhLength));
+		dataIndex += qbqsbbhLength;
+		//6.经度长度			（1字节）
+		int jdLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//7.经度				（jdLength字节）
+		String jd = String.valueOf(HexUtil.convert4BytesToString(b, dataIndex, jdLength));
+		dataIndex += jdLength;
+		//8.纬度长度			（1字节）
+		int wdLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//9.纬度				（wdLength字节）
+		String wd = String.valueOf(HexUtil.convert4BytesToString(b, dataIndex, wdLength));
+		dataIndex += wdLength;
+		//10.申请密码的雷管UID码个数		（1字节）
+		int uidCount = HexUtil.convertBytes(b, dataIndex, 2);
+		dataIndex += 2;
+		//11.申请密码的雷管UID码内容总长度	（1字节）
+		int uidListTotalLength = HexUtil.convertBytes(b, dataIndex, 2);
+		dataIndex += 2;
+		//12.雷管UID码数据块	（uidListTotalLength字节）
+		List uidList = new ArrayList();
+		for(int i = 0 ; i < uidCount ; i++){
+			int uidLength = HexUtil.convertBytes(b, dataIndex, 1);
+			dataIndex += 1;
+			String uid = String.valueOf(HexUtil.convertASCBytesToString(b, dataIndex, uidLength));
+			dataIndex += uidLength;
+			uidList.add(uid);
+		}
+		//13.单位代码长度		（1字节）
+		int dwdmLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//14.单位代码			（dwdmLength字节）
+		String dwdm = HexUtil.convertASCBytesToString(b, dataIndex, dwdmLength);
+		dataIndex += dwdmLength;
+		
+		DzlgxxBean dzlgxxBean = new DzlgxxBean();
+		dzlgxxBean.setDataType(dataType);
+		dzlgxxBean.setJd(jd);
+		dzlgxxBean.setWd(wd);
+		dzlgxxBean.setQbqbh(qbqsbbh);
+		dzlgxxBean.setDwdm(dwdm);
+		dzlgxxBean.setUidList(uidList);
+		dzlgxxBean.setAddCwxxLenth(true);
+	
+		return dzlgxxBean;
+		
+	}
+	
+}

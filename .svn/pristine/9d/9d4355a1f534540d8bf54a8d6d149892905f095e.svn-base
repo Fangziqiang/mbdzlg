@@ -1,0 +1,78 @@
+package com.jadlsoft.struts.action.dzlg;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+
+import com.core.utils.SpringBeanFactory;
+import com.jadlsoft.business.Yhfw.YhfwManager;
+import com.jadlsoft.business.dzlg.DzlgManager;
+import com.jadlsoft.business.dzlg.DzlgParseUtil;
+import com.jadlsoft.domain.DzlgReqBean;
+import com.jadlsoft.utils.MBDZLGConstant;
+
+/**
+ * 
+ * 电子雷管在线请求【http】
+ * @author wujiaxu
+ * @Time 2017-7-20 下午6:00:10
+ *
+ */
+public class JsonMmxzAction extends HttpServlet {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private static Logger logger = Logger.getLogger(JsonMmxzAction.class);
+
+	public void doPost(HttpServletRequest request, HttpServletResponse response)
+		throws ServletException, IOException {
+		
+		String str = "";
+		PrintWriter out = response.getWriter();
+		
+		DzlgManager dzlgManager = (DzlgManager) SpringBeanFactory.getBean("dzlgManager");
+		 // 读取请求内容
+		response.setCharacterEncoding("GBK");
+		String sbbh = request.getParameter("sbbh");
+		String jd = request.getParameter("jd");
+		String wd = request.getParameter("wd");
+		String uid = request.getParameter("uid");
+		DzlgReqBean dzlgReqBean = null;
+		try {
+			/**
+			 * 1、封装数据
+			 */
+			dzlgReqBean = DzlgParseUtil.packHttpMmZxxz(sbbh,  jd, wd, uid);
+		
+			/**
+			 * 2、向网络服务平台请求
+			 */
+			str = (String) dzlgManager.reqToWlfwpt(dzlgReqBean);
+			
+		} catch (Exception e) {
+			logger.info("请求数据有误");
+			str = "{'cwxx','"+MBDZLGConstant.ERROR_REQ+"'}";
+			e.printStackTrace();
+		}
+		logger.info("http密码在线下载返回数据："+str);
+		out.print(str);
+		logger.info("********************************");
+		
+		//保存申请记录
+		//YhfwManager yhfwManager = (YhfwManager) SpringBeanFactory.getBean("yhfwManager");
+		//yhfwManager.saveHttpSqInfo(dzlgReqBean,str);
+	}
+	
+	public void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		this.doPost(request, response);
+	}
+}

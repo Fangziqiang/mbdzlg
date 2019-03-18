@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd   
+           http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd   
+           http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd   
+           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd"
+	default-autowire="byName">
+
+	<bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean"
+		scope="singleton" lazy-init="default" autowire="default"
+		dependency-check="default">
+	 	<property name="jndiName" value="jdbc_mb"></property>
+        <property name="resourceRef" value="true"></property>    
+	</bean>
+   
+	 
+	<!--======================== 事务配置 ======================== -->
+	<!-- 配置事务管理器 -->
+	<!-- 配置事务特性,配置add、delete和update开始的方法,事务传播特性为required -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager" >
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	<bean id="nativeJdbcExtractor" class="org.springframework.jdbc.support.nativejdbc.CommonsDbcpNativeJdbcExtractor" />
+
+	<tx:advice id="txAdvice" transaction-manager="transactionManager" >
+		<tx:attributes>
+			<tx:method name="get*" />
+			<tx:method name="save*" rollback-for="Exception" />
+			<tx:method name="update*" rollback-for="Exception" />
+			<tx:method name="remove*" rollback-for="Exception" />
+			<tx:method name="delete*" rollback-for="Exception" />
+			<tx:method name="logout*" rollback-for="Exception" />
+			<tx:method name="asyncService" rollback-for="Exception" />
+			<tx:method name="*" propagation="REQUIRED" />
+		</tx:attributes>
+	</tx:advice>
+
+	<!-- 配置那些类的方法进行事务管理，当前com.gts.cns.*.service包中的子包、类中所有方法需要，还需要参考tx:advice的设置 -->
+	<aop:config proxy-target-class="true" >
+		<aop:advisor pointcut="execution(* com.core.business..*(..))"	advice-ref="txAdvice" />
+		<aop:advisor pointcut="execution(* com.jadlsoft.business..*(..))"  advice-ref="txAdvice"/>
+		
+	
+	</aop:config>
+	
+	<!-- 操作BLOB字段时候需要配置 -->
+	<bean id="blobUtils" class="com.core.dbutils.BlobUtils" scope="singleton" lazy-init="false">
+		<property name="dataSource" ref="dataSource" />
+		<property name="nje" ref="nativeJdbcExtractor" />
+		<property name="jdbcTemplate" ref="jdbcTemplate" />
+		<property name="namedParameterJdbcTemplate" ref="namedParameterJdbcTemplate" />
+	</bean> 
+	<bean id="daoUtils" class="com.core.dbutils.DaoUtils" init-method="init">
+		<property name="dataSource" ref="dataSource" />
+		<property name="blobUtils" ref="blobUtils" />
+		<property name="nje" ref="nativeJdbcExtractor"/>
+		<property name="namedParameterJdbcTemplate" ref="namedParameterJdbcTemplate" />
+	</bean>
+	
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	<bean id="namedParameterJdbcTemplate" class="org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate">
+		<constructor-arg ref="jdbcTemplate" />
+	</bean>
+	
+	<bean id="logUtils" class="com.core.business.LogUtils">
+		<property name="daoUtils" ref="daoUtils"/>
+	</bean>
+	
+	<bean id="baseManager" class="com.core.business.BaseManager"
+		abstract="true" >
+		<property name="daoUtils" ref="daoUtils"/>
+		<property name="logUtils" ref="logUtils"/>
+	</bean>
+	<!-- Action -->
+	<bean id="commonListAction" class="com.core.struts.action.CommonListAction" init-method="init" scope="prototype">
+		<property name="listcount">
+			<value>20000</value>
+		</property>
+		<property name="dataSource" ref="dataSource" />
+		<property name="listManager" ref="commonlistManager" />
+		<property name="listConfigList">
+			<list>
+			    <value>/listConfig-yhfw.xml</value>
+			</list>
+		</property>
+	</bean>
+	<bean name="commonsuccessAction" class="com.core.struts.action.CommonSuccessAction" scope="prototype"/>
+	<bean name="ajaxAction" class="com.core.struts.action.AjaxAction" scope="prototype"/>
+
+	<bean name="searchAction" class="com.core.struts.action.search.SearchAction" scope="prototype">
+		<property name="searchManager">
+			<ref local="searchManager"/>
+		</property>
+	</bean>
+	<bean name="testUserSearchAction" class="com.core.struts.action.TestUserSearchAction" scope="prototype">
+		<property name="searchManager">
+			<ref local="searchManager"/>
+		</property>
+	</bean>
+	<!-- Manager -->
+	<bean id="searchManager" class="com.core.business.search.SearchManager" parent="baseManager" scope="prototype" />
+	<bean id="ajaxManager" class="com.core.business.AjaxManager" parent="baseManager" scope="prototype" />
+	<bean id="commonlistManager" class="com.core.business.CommonListManager" parent="baseManager" scope="prototype" />
+	<bean id="aopManager" class="com.core.business.AopManager"/>
+
+	
+	<bean id="dicMapUtils" class="com.core.dbutils.DicMapUtils" init-method="setCache">
+		<property name="tableList">
+			<list>
+			<value>t_dw_wlfwptdz//t_dw_wlfwptdz//xzqh//xzqh</value>
+			</list>
+		</property>
+		<property name="keyColumn" value="dm" />
+		<property name="dicConfigFile" value="/dicconfig.xml" />
+	</bean>
+	
+	<bean id="sqlMapUtils" class="com.core.dbutils.SqlMapUtils"
+		init-method="init">
+		<property name="sqlmapList">
+			 <list>
+			 	<value>/sqlmapconfig-yhfw.xml</value> 
+			 	
+			</list>
+		</property>
+	</bean>
+
+ 	<!-- 日志manager的业务逻辑层  -->
+ 	<bean id="commonLogManager" class="com.jadlsoft.business.CommonLogManager" parent="baseManager" />
+ 	
+ 	<!-- 电子雷管 -->
+	<bean id="dzlgManager" class="com.jadlsoft.business.dzlg.DzlgManager" parent="baseManager" ></bean>
+	
+	<!-- 用户访问 -->
+	<bean id="yhfwManager" class="com.jadlsoft.business.Yhfw.YhfwManager" parent="baseManager" ></bean>
+</beans>

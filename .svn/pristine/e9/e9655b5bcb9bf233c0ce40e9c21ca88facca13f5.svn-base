@@ -1,0 +1,11 @@
+package com.core.business;
+
+import java.util.List;
+
+import com.core.dbutils.DaoUtils;
+import com.core.model.session.BaseUserSession;
+
+public interface CommonListConfigInterface {
+	public String transTableName(String tableName , List conditions , DaoUtils daoUtils);
+	public String transTableName(String tableName , List conditions , DaoUtils daoUtils,BaseUserSession userSessionBean);
+}

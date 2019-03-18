@@ -1,0 +1,199 @@
+body a{
+    -webkit-tap-highlight-color:transparent;
+}
+.header-x {
+    background: none repeat scroll 0 0 #2c2c2c;
+    height: 45px;
+    padding: 0 ;
+    position: fixed;
+    width: 100%;
+    z-index: 10;
+    box-sizing: border-box;
+}
+
+.header-x a, .footer-w a,.header-x a:visited {
+    color: #959595;
+}
+.header-x a:hover, .footer-w a:hover {
+    color: #f5f5f5;
+    text-decoration: none;
+}
+.header-x .header-x-lot {
+    margin: 0 auto;
+}
+.header-x .header-x-lot .bar{padding-left: 15px;padding-right: 15px;}
+.header-x .header-x-lot .side-btn{
+    display: none;
+    float: left;
+    height: 45px;
+    border-right: 1px solid #262626;
+}
+.header-x .header-x-lot .side-btn .icon{
+    display: block;
+    font-size: 18px;
+    margin: 15px 15px 0 15px;
+
+}
+
+.header-x .header-x-lot .side-btn:hover{
+     background-color: #262626;
+}
+.header-x .header-x-lot .logo {
+    background: url(../images/logo_front.png) no-repeat;
+    display: block;
+    float: left;
+    height: 27px;
+    margin-top: 9px;
+    margin-left: 10px;
+    width: 115px;
+}
+.backgroundsize .header-x .header-x-lot .logo {
+    background-image: url(../images/logo_deboule.png);
+    background-size: 115px 28px;
+}
+.header-x .nav {
+    float: left;
+    margin-left: 30px;
+}
+.header-x .nav li {
+    float: left;
+    height: 45px;
+    line-height: 45px;
+    text-align: center;
+    width: 80px;
+}
+.header-x .nav li.current a {
+    color: #f5f5f5;
+}
+.header-x .user {
+    float: right;
+}
+.header-x .user-lt {
+    float: left;
+    height: 45px;
+    line-height: 45px;
+    z-index: 100;
+}
+.header-x .user-lt a {
+    display: inline-block;
+    height: 45px;
+    padding: 0 10px;
+}
+.header-x .user-lt a.user-od {
+    padding-left: 20px;
+}
+.header-x .user-lt a.user-cd {
+    font-size: 16px;
+}
+.header-x .links {
+  float: right;
+  margin-top: 10px;
+  margin-right: 10px;
+}
+.header-x .links a {
+    color: #fff;
+    font-size: 12px;
+    margin-left: 26px;
+    text-decoration: none;
+}
+.header-x .links a.btn{
+    background: none repeat scroll 0 0 #a6a6a6;
+    border-radius: 3px;
+    color: #333;
+    display: inline-block;
+    height: 24px;
+    line-height: 24px;
+    padding:0;
+    text-align: center;
+    width: 56px;
+}
+.header-x .links a.btn:hover {
+    color: #fff;
+}
+
+.side-nav {
+  position: fixed;
+  top: 45px;
+  width: 220px;
+  height: 100%;
+  z-index: 999;
+  background-color: #2b2b2b;
+  margin-left: -220px;
+  transition: margin-left 0.15s ease-in-out 0s;
+}
+
+.side-nav .menu li {
+    padding-left: 15px;
+    border-bottom: 1px solid #333333;
+}
+.side-nav .menu li a {
+    text-decoration: none;
+    display: block;
+    color: #f5f5f5;
+    padding:20px 20px 20px 30px;
+    position: relative;
+    font-size: 12px;
+}
+.side-nav .menu li a .icon{
+    position: absolute;
+    top:20px;
+    left:0;
+    color: #959595;
+    font-size: 16px;
+    margin-right: 10px;
+}
+.side-nav .menu li.current,.side-nav .menu li:hover{
+    background-color: #262626;
+}
+@media screen and (max-width: 1000px) {
+  .header-x{
+    padding-left: 0;
+  }
+  #headnav {
+    display:none;
+  }
+  .header-x .header-x-lot .side-btn{
+    display:block;
+  }
+}
+@media screen and (max-device-width: 1024px) {
+  .header-x a:hover, .footer-w a:hover {
+    color: #959595;
+    text-decoration: none;
+  }
+}
+/* 20160401 ����ȯ �����3000 ��Ŀ ��� ��ʽ*/
+.header-x .nav .give-3000 {width: 90px;}
+.user-give-3000 { box-sizing:content-box;background: url() no-repeat; color: #fff; font-size: 13px; height: 22px; line-height: 22px; padding: 6px 0 0 12px; text-align: center; width: 70px; margin-top: 5px; display: block; }
+
+/*vip会员专区页*/
+.vip-container .list{
+	padding: 12px 50px 0;
+}
+.vip-container .list li:before {
+    content: "";
+    float: left;
+    width: 6px;
+    height: 6px;
+    margin: 13px 0;
+    background-color: #3498db;
+    border-radius: 50%;
+}
+.vip-container .list li a {
+    display: block;
+    height: 32px;
+    font-size: 14px;
+    color: #7c7c7c;
+    line-height: 32px;
+    text-indent: 10px;
+}
+.ellipsis {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.vip-container .list li a:hover {
+    color: #2980b9;
+}

@@ -1,0 +1,156 @@
+package com.jadlsoft.domain;
+
+import java.util.Date;
+
+public class YhfwBean {
+	public static final String db_tablename = "t_dzlg_yhfw";
+	public static final String db_tablepkfields = "id";
+	private String id;
+	//单位编号
+	private String dwdm;
+	//接口类型 http/socket
+	private String jklx;
+	//访问类型
+	private String dataType;
+	//访问区域
+	private String xzqh;
+	//访问时间
+	private Date fwsj;
+	//返回数据
+	private String fh;
+	//起爆器
+	private String qbqbh;
+	//合同编号
+	private String htid;
+	//项目编号
+	private String xmbh;
+	
+	//箱条码
+	private String xtm;
+	//盒条码
+	private String htm;
+	//发编号
+	private String fbh;
+	//经度
+	private String jd;
+	//纬度
+	private String wd;
+	//雷管
+	private String lguid;
+	//爆破时间
+	private String bpsj;
+	//爆破人员身份证
+	private String bprysfz;
+	
+	public String getXtm() {
+		return xtm;
+	}
+	public void setXtm(String xtm) {
+		this.xtm = xtm;
+	}
+	public String getHtm() {
+		return htm;
+	}
+	public void setHtm(String htm) {
+		this.htm = htm;
+	}
+	public String getFbh() {
+		return fbh;
+	}
+	public void setFbh(String fbh) {
+		this.fbh = fbh;
+	}
+	public String getJd() {
+		return jd;
+	}
+	public void setJd(String jd) {
+		this.jd = jd;
+	}
+	public String getWd() {
+		return wd;
+	}
+	public void setWd(String wd) {
+		this.wd = wd;
+	}
+	
+	public String getLguid() {
+		return lguid;
+	}
+	public void setLguid(String lguid) {
+		this.lguid = lguid;
+	}
+	public String getBpsj() {
+		return bpsj;
+	}
+	public void setBpsj(String bpsj) {
+		this.bpsj = bpsj;
+	}
+	public String getBprysfz() {
+		return bprysfz;
+	}
+	public void setBprysfz(String bprysfz) {
+		this.bprysfz = bprysfz;
+	}
+	public String getId() {
+		return id;
+	}
+	public void setId(String id) {
+		this.id = id;
+	}
+	public String getDwdm() {
+		return dwdm;
+	}
+	public void setDwdm(String dwdm) {
+		this.dwdm = dwdm;
+	}
+	public String getJklx() {
+		return jklx;
+	}
+	public void setJklx(String jklx) {
+		this.jklx = jklx;
+	}
+	public String getDataType() {
+		return dataType;
+	}
+	public void setDataType(String dataType) {
+		this.dataType = dataType;
+	}
+	public String getXzqh() {
+		return xzqh;
+	}
+	public void setXzqh(String xzqh) {
+		this.xzqh = xzqh;
+	}
+	
+	public Date getFwsj() {
+		return fwsj;
+	}
+	public void setFwsj(Date fwsj) {
+		this.fwsj = fwsj;
+	}
+	public String getFh() {
+		return fh;
+	}
+	public void setFh(String fh) {
+		this.fh = fh;
+	}
+	public String getQbqbh() {
+		return qbqbh;
+	}
+	public void setQbqbh(String qbqbh) {
+		this.qbqbh = qbqbh;
+	}
+	public String getHtid() {
+		return htid;
+	}
+	public void setHtid(String htid) {
+		this.htid = htid;
+	}
+	public String getXmbh() {
+		return xmbh;
+	}
+	public void setXmbh(String xmbh) {
+		this.xmbh = xmbh;
+	}
+	
+}

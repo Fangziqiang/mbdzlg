@@ -1,0 +1,68 @@
+package com.jadlsoft.socket;
+
+
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+
+import org.apache.log4j.Logger;
+
+/**
+ * 
+ * 准爆规则、禁爆规则更新线程（初始化时设置为守护线程）
+ * @作者：吴家旭
+ * @时间：May 24, 2016 1:59:25 PM
+ */
+public class OpenDzlgGzgxSocket extends Thread{
+	
+    private static Logger log = Logger.getLogger(OpenDzlgGzgxSocket.class);	
+  
+    private static ServerSocket serverSocket;
+    private  ExecutorService executor;
+  
+    public OpenDzlgGzgxSocket(int port, ExecutorService executor_) {
+    	try {
+			serverSocket = new ServerSocket(port);
+			executor = executor_;
+		} catch (IOException e) {
+			log.info("实例化准爆规则、禁爆规则更新socket通信出错!", e);
+		}
+    	
+	}
+
+	/**
+	 * 线程运行
+	 */
+	public void run() {
+		try {
+			while(true){
+				Socket socket = serverSocket.accept();
+				//String ip = socket.getInetAddress().getHostAddress();
+				//System.out.println(ip);
+				//每接收到一个Socket就建立一个新的线程来处理它  
+				executor.execute(new DzlgGzgxManager(socket));
+			}
+		} catch (IOException e) {
+			log.info("开启准爆规则、禁爆规则更新socket服务出错!", e);
+		}  
+	}
+
+	
+	/**
+	 * 关闭服务
+	 * @参数：
+	 * @返回值：void
+	 */
+	public void stopService(){
+		if(serverSocket != null){ 
+			try {
+				if(serverSocket.isBound() && !serverSocket.isClosed()) 
+					serverSocket.close();
+			} catch (IOException e) {
+				log.info("关闭控制中心socket服务异常!", e);
+			}
+		}
+		
+	}
+}

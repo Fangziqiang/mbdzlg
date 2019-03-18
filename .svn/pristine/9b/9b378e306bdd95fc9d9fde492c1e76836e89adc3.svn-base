@@ -1,0 +1,395 @@
+package com.jadlsoft.utils;
+
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.reflect.Method;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Date;
+import java.util.concurrent.ExecutorService;
+
+import org.apache.log4j.Logger;
+
+import com.core.utils.DateUtils;
+import com.core.utils.SystemConstants;
+
+/**
+ * 
+ * socket多线程操作
+ * @author wujiaxu
+ * @Time 2017-7-3 下午2:00:12
+ *
+ */
+public class SocketMultiThreadUtils  extends Thread{
+    private static Logger log = Logger.getLogger(SocketMultiThreadUtils.class);	
+ 
+    private ExecutorService executor;//线程池
+    
+    private ServerSocket serverSocket;//服务器socket
+    private int receiveMode ;//socket接受模式
+
+    private Class<?> cls ;//业务处理类class
+    private String operationName = "";//业务处理方法 
+    private String description = "";//业务说明
+    
+  
+    /**
+     * 实例化等候线程
+     * @param executor 		线程池
+     * @param port			socket监听端口
+     * @param receiveMode	信息接受模式  0:短连接  1:长连接  2：分包
+     * @param cls			业务处理的class
+     * @param operationName	业务处理的方法
+     * @param describe		业务处理描述
+     */
+    public SocketMultiThreadUtils(ExecutorService executor, int port, int receiveMode, Class<?> cls, String operationName, String describe) {
+    	try {
+			this.serverSocket = new ServerSocket(port);
+			this.executor = executor;
+			this.cls = cls;
+			this.operationName = operationName;
+			this.description = describe;
+			this.receiveMode = receiveMode;
+		} catch (IOException e) {
+			log.error("***************"+description+"等候线程实例化报错!", e);          
+		}
+	}
+    
+
+	/**
+	 * 每次接受到socket信息开启新线程处理
+	 */
+	public void run() {
+		try {
+			while(true){
+				Socket socket = serverSocket.accept();
+				//String ip = socket.getInetAddress().getHostAddress();
+				//System.out.println(ip);
+				executor.execute( new ReceiveMsg(socket));
+			}
+		} catch (IOException e) {
+			log.error("***************"+description+"scoket开启多线程监控出错!", e);
+		}  
+	}
+	
+	/**
+	 * 
+	 * 此工具提供了以下三种数据接收方式：
+	 * 
+	 * 1、【长连接】
+	 * 		特性：支持一次连接多次请求
+	 * 		关闭：等待超时|处理失败
+	 * 
+	 * 2、【分包】
+	 * 		特性：一个包裹分段请求
+	 * 		关闭：等待超时|处理完成|处理失败
+	 * 		说明：【第一个包裹中的第3-7个字节为数据总长度】
+	 *
+	 * 3、【短连接】
+	 * 		特性：请求一次
+	 * 		关闭：处理完成|处理失败
+	 * 
+	 * @author wujiaxu
+	 * @Time 2017-6-30 下午4:40:04
+	 *
+	 */
+	class ReceiveMsg implements Runnable {
+		
+		private Socket client;
+		private int delayTime = 100 * 1000;//socket连接失效时间(默认100秒)
+		private int outTime = 20 * 1000;//socket空闲等待失效时间(默认20秒)
+		private Date handlerTime = null;//处理计数
+		
+		public ReceiveMsg(Socket socket) {
+			this.client = socket;
+		
+		}
+		
+		public void run() {
+			log.info("==============="+description+"开始通讯!");
+
+			while (!client.isClosed()) {
+				byte[] inpByte = null;
+				try{
+					client.setKeepAlive(true);
+					client.setSoTimeout(delayTime);
+					
+					/**
+					 * 1、接收字节流
+					 */
+					switch (receiveMode) {
+					case MBDZLGConstant.RECEIVE_MODE_LONG:
+						log.info("==============="+description+"长连接接收方式!");
+						inpByte = readInput_Long();//长连接
+						break;
+					case MBDZLGConstant.RECEIVE_MODE_SPLIT: 
+						log.info("==============="+description+"分包接收方式!");
+						inpByte = readInput_Split();//分包
+						break;
+					default:
+						log.info("==============="+description+"短连接接收方式!");
+						inpByte = readInput_Short();//短连接 
+						break;
+					}
+					if(inpByte == null){
+						this.closeSocket();
+						return;
+					}
+					
+		            /**
+		             * 2、处理接受信息
+		             */
+		            byte[] res = this.HandlerMsg(inpByte);
+					  
+					/**
+					 * 3、结果输出
+					 */
+		            this.writeOutput(res);
+		           
+				} catch (Exception e) {
+					log.error("***************"+description+"信息处理异常！",e);
+					this.closeSocket();
+				}finally{
+					//重置计数
+					handlerTime = DateUtils.getCurrentDate("yyyy-MM-dd HH:mm:ss");
+					//非长连接关闭socket通讯
+					if(receiveMode != MBDZLGConstant.RECEIVE_MODE_LONG){
+						this.closeSocket();
+					} 
+				}
+				
+			}
+		}
+		
+
+		/**
+		 * 结果输出
+		 * @param res
+		 * @throws IOException
+		 * @author wujiaxu
+		 * @Time 2017-7-4 下午4:15:25
+		 */
+		private void writeOutput(byte[] res) throws IOException {
+			OutputStream os = client.getOutputStream();
+            os.write(res);
+            os.flush();
+		}
+
+		
+
+		/**
+		 * 分包
+		 * @return
+		 * @author wujiaxu
+		 * @throws IOException 
+		 * @Time 2017-7-4 上午11:31:30
+		 */
+		private byte[] readInput_Split() throws IOException {
+			handlerTime = DateUtils.getCurrentDate("yyyy-MM-dd HH:mm:ss");
+			
+			byte[] resltByte = new byte[]{};
+			int dataLength = 0;//包裹总长度
+			int sum = 0;//第N个包裹
+			int readLength = 0;//已读取长度
+			/**
+			 * 分包接收
+			 */
+			do{
+				//1、读取包裹
+			    byte[] b = this.readInput(true);
+			    
+	            //2、组合包裹信息
+	            resltByte = HexUtil.byteMerger(resltByte, b);
+	            readLength += b.length;
+	            sum++;
+	            
+	            //3、获取包裹总长度【只针对第一个包裹】
+	            if(sum == 1){
+					//数据头
+					int dataTitle = HexUtil.convertBytes(b, 0, 2);
+					if(dataTitle != 6876){
+                        log.info("***************"+description+"数据头不匹配，非法请求！");
+                        return null;
+					}
+					//数据总长度（4字节）【包含数据头】
+					dataLength = HexUtil.bytesToInt2(b, 3)+7;
+					log.info("==============="+description+"接收数据帧总长度："+dataLength);
+				}
+	            log.info("==============="+description+"第"+sum+"数据包数据长度："+b.length);
+	            
+	            //4、非法请求跳出循环
+	            if(dataLength < readLength){
+	            	log.info("***************非法请求，数据总长度小于读取的长度！");
+	            	return null;
+	            }
+	            //5、重置计数
+	            handlerTime = DateUtils.getCurrentDate("yyyy-MM-dd HH:mm:ss");
+			} while (dataLength != readLength);
+			
+			return resltByte;			
+		}
+		
+
+		/**
+		 * 长连接
+		 * @return
+		 * @author wujiaxu
+		 * @throws IOException 
+		 * @Time 2017-7-4 上午11:05:42
+		 */
+		private byte[] readInput_Long() throws IOException {
+			handlerTime = DateUtils.getCurrentDate("yyyy-MM-dd HH:mm:ss");
+			return readInput(true);
+		}
+		
+		/**
+		 * 短连接
+		 * @return
+		 * @author wujiaxu
+		 * @throws IOException 
+		 * @Time 2017-7-4 上午11:31:25
+		 */
+		private byte[] readInput_Short() throws IOException {
+			return this.readInput(false);
+			
+		}
+
+		/**
+		 * 
+		 * 读取数据流
+		 * @author wujiaxu
+		 * @param isOutTime 是否开启超时计数
+		 * @return 
+		 * @throws IOException 
+		 * @Time 2017-7-4 下午12:14:21
+		 */
+		private byte[] readInput(boolean isOutTime) throws IOException {
+			InputStream is = client.getInputStream();
+			int count = 0; 
+			while (count == 0 ) {
+			   count = is.available();   
+			   //开启超时计数时，超过30秒未接受到数据自动关闭
+			   if(isOutTime && this.isWaitTimeOut()){
+				   return null;
+			   }
+			} 
+			
+			//防止阻塞读取方法【针对网络数据流】
+			byte[] b = new byte[count]; 
+	        int readCount = 0;
+	        int countTemp = 0; 
+            while(readCount < count){
+            	if((countTemp = is.read(b,readCount,count-readCount))!=-1)  
+            		readCount+=countTemp;
+            }
+			return b;
+		}
+		/**
+		 * 处理接受到的信息
+		 * @param b
+		 * @return
+		 * @author wujiaxu
+		 * @Time 2017-7-1 上午10:53:12
+		 */
+		private byte[] HandlerMsg(byte[] b) {
+			try {
+				Object invokertester = cls.newInstance();  
+				Method addMethod = cls.getMethod(operationName, new Class[] { byte[].class });  
+				/**
+				 * 
+				 * Method类的invoke(Object obj,Object args[])方法接收的参数必须为对象， 
+				 * 如果参数为基本类型数据，必须转换为相应的包装类型的对象。invoke()方法的返回值总是对象，
+				 * 如果实际被调用的方法的返回类型是基本类型数据，那么invoke()方法会把它转换为相应的包装类型的对象，
+				 * 再将其返回  
+				 */
+	         
+		        Object result = addMethod.invoke(invokertester, new Object[] {b});
+				return (byte[]) result;
+			} catch (Exception e) {
+				log.error("***************"+description+"业务处理发生错误！",e);
+				return null;
+			}
+	
+		}
+		
+		/**
+		 * 判断是否等待超时
+		 * @param handlerTime
+		 * @return
+		 * @author wujiaxu
+		 * @Time 2017-7-1 下午2:43:59
+		 */
+		private boolean isWaitTimeOut() {
+			Date nowTime = DateUtils.getCurrentDate("yyyy-MM-dd HH:mm:ss");
+			if(nowTime.getTime() - handlerTime.getTime() > outTime){
+				log.info("==============="+description+"空闲等待超时！");
+                return true;
+            }
+			return false;
+		}
+		
+		/**
+		 * 判断是否结束
+		 * @param res
+		 * @return
+		 * @author wujiaxu
+		 * @Time 2017-7-1 下午2:25:19
+		 */
+		private boolean isEndMsg(byte[] res) {
+			if(res == null || res.length <=15){
+				return true;
+			}
+			return false;
+		}
+
+
+		/**
+		 * 
+		 * 关闭连接
+		 * @author wujiaxu
+		 * @Time 2017-7-1 下午2:10:45
+		 */
+		private void closeSocket() {
+			try { 
+				if (client != null) {
+					if(!client.isOutputShutdown()){
+						client.shutdownOutput();
+					}
+					if(!client.isInputShutdown()){
+						client.shutdownInput();
+					}
+					if(!client.isClosed()){
+						client.close();
+						log.info("==============="+description+"连接关闭！");
+						log.info("==============="+description+"结束通讯!");
+					}
+	            }  
+			} catch (Exception e) {   
+            	client = null;   
+                log.info("***************"+description+"scoket关闭连接异常！", e);
+            }   
+		}
+	}
+	
+
+
+	/**
+	 * 关闭socket服务
+	 * @参数：
+	 * @返回值：void
+	 */
+	public void stopService(){
+		if(serverSocket != null){ 
+			try {
+				if(serverSocket.isBound() && !serverSocket.isClosed()) 
+					serverSocket.close();
+			} catch (IOException e) {
+				log.info("关闭socket服务异常!", e);
+			}
+		}
+		
+	}
+
+}

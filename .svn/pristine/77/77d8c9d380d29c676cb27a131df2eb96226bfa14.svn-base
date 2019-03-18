@@ -1,0 +1,61 @@
+package com.jadlsoft.json;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+
+import com.jadlsoft.business.Yhfw.YhfwManager;
+import com.jadlsoft.business.dzlg.DzlgManager;
+import com.jadlsoft.business.dzlg.DzlgParseUtil;
+import com.jadlsoft.domain.DzlgReqBean;
+import com.jadlsoft.domain.YhfwBean;
+import com.jadlsoft.utils.MBDZLGConstant;
+import com.core.utils.SpringBeanFactory;
+@SuppressWarnings("unchecked")
+public class DzlgGxgzJsonServlet extends HttpServlet {
+	private static Logger logger = Logger.getLogger(DzlgSysbJsonServlert.class);
+	public void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		this.doPost(request, response);
+	}
+
+	public void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		DzlgManager dzlgManager = (DzlgManager) SpringBeanFactory
+				.getBean("dzlgManager");
+		response.setCharacterEncoding("GBK");
+		PrintWriter out = response.getWriter();
+		String str = null;
+	
+		// 读取请求内容
+		String sbbh = request.getParameter("sbbh");
+		String jd = request.getParameter("jd");
+		String wd = request.getParameter("wd");
+		String dwdm = request.getParameter("dwdm");
+		String htid = request.getParameter("htid");
+		String xmbh = request.getParameter("xmbh");
+		DzlgReqBean dzlgReqBean = DzlgParseUtil.packHttpGxgz(sbbh, jd, wd, dwdm, htid, xmbh);
+		try {
+			str = (String) dzlgManager.reqToWlfwpt(dzlgReqBean);
+		} catch (Exception e) {
+			logger.info("请求数据有误");
+			str = "{'cwxx','"+MBDZLGConstant.ERROR_REQ+"'}";
+			e.printStackTrace();
+		}
+		logger.info("http更新规则返回数据："+str);
+		out.print(str);
+		logger.info("********************************");
+		
+		//保存申请记录
+		YhfwManager yhfwManager = (YhfwManager) SpringBeanFactory.getBean("yhfwManager");
+		yhfwManager.saveHttpSqInfo(dzlgReqBean,str);
+	}
+}

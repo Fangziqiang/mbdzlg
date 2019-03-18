@@ -1,0 +1,1055 @@
+package com.jadlsoft.domain;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import net.sf.json.JSONObject;
+
+import org.apache.log4j.Logger;
+
+import com.jadlsoft.business.BaseManager;
+import com.jadlsoft.dbutils.DicCache;
+import com.jadlsoft.utils.Base64;
+import com.jadlsoft.utils.DateUtils;
+import com.jadlsoft.utils.HexUtil;
+import com.jadlsoft.utils.LngLatUtils;
+import com.jadlsoft.utils.MBDZLGConstant;
+import com.jadlsoft.utils.SecretUtils;
+import com.jadlsoft.utils.TripleDES3_DzlgMmxz;
+import com.jadlsoft.utils.TripleDES_GZM;
+import com.jadlsoft.utils.TripleDES_Socket;
+
+
+public class DzlgParseHelper extends BaseManager{
+	private static Logger logger = Logger.getLogger(DzlgParseHelper.class);
+
+	
+	
+	/**
+	 * 数据帧加密
+	 * @参数： @param b
+	 * @参数： @return   
+	 * @返回值： byte[]  
+	 * @param dataType 
+	 * @throws Exception 
+	 */
+	public static byte[] encodeData(byte[] rData, int dataType) throws Exception {
+	
+		//数据头
+		byte []tempRes = new byte[7];
+		byte [] dataLength = int2bytes(rData.length);
+		tempRes[0] = 68;
+		tempRes[1] = 76;
+		tempRes[2] = (byte) dataType;
+		
+		//数据总长度
+		if(rData.length == 1){
+			//上报位置
+			tempRes[3] = (byte) 0;
+			tempRes[4] = (byte) 0;
+			tempRes[5] = (byte) 0;
+			tempRes[6] = (byte) 1;
+		}else{
+			//其他
+			tempRes[3] = (byte) dataLength[0];
+			tempRes[4] = (byte) dataLength[1];
+			tempRes[5] = (byte) dataLength[2];
+			tempRes[6] = (byte) dataLength[3];
+		}
+		
+		byte[] res = new byte[rData.length+tempRes.length];
+		System.arraycopy(tempRes, 0, res, 0, 7);
+		System.arraycopy(rData, 0, res, 7, rData.length);
+		return res;
+	}
+
+
+	/**
+	 * 电子雷管-数据帧解密
+	 * @参数： @param res
+	 * @参数： @return   
+	 * @返回值： byte[]  
+	 * @throws Exception 
+	 */
+	public static byte[] decodeData(byte[] b) throws Exception {
+		//解析从第7位字节开始的3DES加密串
+		byte temp [] = new byte[b.length-7];
+		System.arraycopy(b, 7, temp, 0, b.length-7);
+		byte[] c = SecretUtils.des3DecodeECB(temp);
+		byte  d [] = new byte[c.length + 7];
+		System.arraycopy(b, 0, d, 0, 7);
+		System.arraycopy(c, 0, d, 7, c.length);
+		return d;
+	}
+	
+	private static byte[] int2bytes(int num) {  
+	    byte[] b = new byte[4];  
+	    for (int i = 0; i < 4; i++) {  
+	        b[i] = (byte) (num >>> (24 - i * 8));  
+	    }  
+	    return b;  
+	} 
+	
+	
+	/**
+	 * 根据协议解析工作码
+	 * @参数： @param gzm
+	 * @参数： @return   
+	 * @返回值： String  
+	 * @throws
+	 */
+	private static String parseGzm(String gzm) {
+		if(gzm == null || "".equals(gzm)){
+			return null;
+		}
+		try {
+			byte[] gzms = Base64.decode(gzm);
+			String str = new String(gzms);
+			int dataIndex = 0;
+			//数据总长度 (1字节)
+			int dataLegth = HexUtil.convertBytes(gzms, dataIndex, 1);
+			dataIndex++;
+			//UID码长度(1字节)
+			int uidLegth = HexUtil.convertBytes(gzms, dataIndex, 1);
+			dataIndex++;
+			//UID码内容
+			String uid ="";
+			dataIndex+=uidLegth;
+			//雷管壳体编码长度(1字节)
+			int fbhLegth = HexUtil.convertBytes(gzms, dataIndex, 1);
+			dataIndex++;
+			//雷管壳体编码内容
+			String fbh = "";
+			dataIndex+=fbhLegth;
+			//密码长度(1字节)
+			int mmLegth = HexUtil.convertBytes(gzms, dataIndex, 1);
+			dataIndex++;
+			//密码内容
+			byte [] temp_mm = new byte[mmLegth];
+				System.arraycopy(gzms, dataIndex, temp_mm, 0, gzms.length-dataIndex);
+				String mm = TripleDES_GZM.decode(temp_mm);
+				return mm;
+		} catch (Exception e) {
+			logger.info("工作码解析错误！");
+			return null;
+		}
+	}
+	
+	/**
+	 * 组装密码下载返回信息【socket】
+	 * @param mmxzBean
+	 * @return
+	 * @throws Exception
+	 * @author wujiaxu
+	 * @Time 2017-7-31 下午5:34:53
+	 */
+	private static byte[] buildMmxzMsg_Byte(DzlgReqBean mmxzBean)  {
+		try {
+			byte[] res = null;
+			if(mmxzBean.getLgqbmmList() == null){
+				res = new byte[1000];
+			}else{
+				res = new byte[50*(mmxzBean.getLgqbmmList().size()+4)];
+			}
+			//数组下标
+			int dataIndex = 0;
+			//字节计数
+			int count = 0;
+			Map map = null;
+			String str = ""; 
+			byte [] b = new byte[1000*10];
+			//错误信息长度
+			res[dataIndex] = (byte)1;
+			dataIndex ++;
+			//错误信息内容
+			res[dataIndex] =  (byte)mmxzBean.getError();
+			dataIndex ++;
+			//如果有错误信息就返回
+			if(mmxzBean.getError() != 0){
+	//			//数据总长度
+	//			count = dataIndex-7;
+	//			str = count+"";//由原来16进制调整为10进制
+	//			while(str.length() < 8){
+	//				str = 0 + str;
+	//			}
+	//			res[3] = (byte) Integer.parseInt(str.substring(0, 2),16);
+	//			res[4] = (byte) Integer.parseInt(str.substring(2, 4),16);
+	//			res[5] = (byte) Integer.parseInt(str.substring(4, 6),16);
+	//			res[6] = (byte) Integer.parseInt(str.substring(6, 8),16);
+				byte []res2 = new byte[dataIndex];
+				System.arraycopy(res, 0, res2, 0, dataIndex);
+				return res2;
+				
+			}
+			//工作码有效期长度
+			res[dataIndex] = (byte)6;
+			dataIndex++;
+			//工作码有效期	
+			List LgyxqList = (List) DicCache.getInstance().getCache().get("t_dzlg_lgyxq");
+			Calendar now = Calendar.getInstance();  
+		    now.setTime(DateUtils.getCurrentDate());
+		    now.set(Calendar.DATE, now.get(Calendar.DATE) + Integer.valueOf(((Map)LgyxqList.get(0)).get("lgyxq").toString())); //有效期
+			str = DateUtils.tranTimestamp2StringWithFormat(now.getTime());
+			res[dataIndex] = Byte.valueOf(str.substring(2, 4));
+			dataIndex++;
+			res[dataIndex] = Byte.valueOf(str.substring(5, 7));
+			dataIndex++;
+			res[dataIndex] = Byte.valueOf(str.substring(8, 10));
+			dataIndex++;
+			res[dataIndex] = Byte.valueOf(str.substring(11, 13));
+			dataIndex++;
+			res[dataIndex] = Byte.valueOf(str.substring(14, 16));
+			dataIndex++;
+			res[dataIndex] = Byte.valueOf(str.substring(17, 19));
+			dataIndex++;
+			//数据类型不为8时，返回以下数据
+			if(mmxzBean.getDataType() != 8 && mmxzBean.getDataType() != 20){
+				//起爆器模块
+				map = getQbqSjk(mmxzBean.getBaxxBean());
+				//起爆器编码数据块个数
+				res[dataIndex] = (byte) Integer.parseInt(Integer.toHexString(Integer.parseInt((String) map.get("count"))));
+				dataIndex ++;
+				if("0".equals(map.get("count"))){
+					/**
+					 * 数据块为0不传其他参数
+					 */
+				}else{
+					//起爆器编码内容总长度
+					str = (String) map.get("length");
+					while(str.length() < 4){
+						str = 0 + str;
+					}
+					res[dataIndex] = (byte)Integer.parseInt(str.substring(0, 2));
+					dataIndex ++;
+					res[dataIndex] = (byte)Integer.parseInt(str.substring(2, 4));
+					dataIndex ++;
+					//起爆器编码数据块
+					if(Integer.valueOf((String) map.get("count")) > 0){
+						b = (byte[]) map.get("b");
+						if(b != null && b.length > 0){
+							System.arraycopy(b, 0, res, dataIndex, Integer.valueOf((String) map.get("length")));
+							dataIndex = dataIndex + Integer.valueOf((String) map.get("length"));
+						}
+					}
+				}
+				//准爆区域
+				Map zbqyMap = getZbqySjk(mmxzBean);
+				//禁爆区域
+				Map jbqyMap = getJbqySjk(mmxzBean);
+	//			if(Integer.valueOf((String) zbqyMap.get("count"))+Integer.valueOf((String) jbqyMap.get("count")) > 30){
+	//				res[1] = (byte) 256;
+	//			}else{
+	//				res[1] = 0;
+	//			}
+				//准爆区域数据块个数
+				res[dataIndex] = Byte.valueOf((String) zbqyMap.get("count"));
+				dataIndex++;
+				if("0".equals(zbqyMap.get("count"))){
+					/**
+					 * 修改数据块个数为0的时候不传块内容长度以及块内数据，直接传下面数据
+					 */
+				}else{
+					//准爆区域内容总长度
+					res[dataIndex] = (byte) (Integer.valueOf((String) zbqyMap.get("length")) / 256);
+					dataIndex ++;
+					res[dataIndex] = (byte) (Integer.valueOf((String) zbqyMap.get("length")) % 256);
+					dataIndex ++;
+					//准爆区域数据块
+					if(Integer.valueOf((String) zbqyMap.get("count")) > 0){
+						b = (byte[]) zbqyMap.get("b");
+						if(b != null && b.length > 0){
+							System.arraycopy(b, 0, res, dataIndex, Integer.valueOf((String) zbqyMap.get("length")));
+							dataIndex = dataIndex + Integer.valueOf((String) zbqyMap.get("length"));
+						}
+					}
+				}
+				//禁爆区域数据块个数
+				res[dataIndex] = Byte.valueOf((String) jbqyMap.get("count"));
+				dataIndex++;
+				if("0".equals(jbqyMap.get("count"))){
+					/**
+					 * 修改数据块个数为0的时候不传块内容长度以及块内数据，直接传下面数据
+					 */
+				}else{
+					//禁爆区域内容总长度
+					res[dataIndex] = (byte) (Integer.valueOf((String) jbqyMap.get("length")) / 256);
+					dataIndex ++;
+					res[dataIndex] = (byte) (Integer.valueOf((String) jbqyMap.get("length")) % 256);
+					dataIndex ++;
+					//禁爆区域数据块
+					if(Integer.valueOf((String) jbqyMap.get("count")) > 0){
+						b = (byte[]) jbqyMap.get("b");
+						if(b != null && b.length > 0){
+							System.arraycopy(b, 0, res, dataIndex, Integer.valueOf((String) jbqyMap.get("length")));
+							dataIndex = dataIndex + Integer.valueOf((String) jbqyMap.get("length"));
+						}
+					}
+				}
+			}
+			//雷管标识
+			map = getLgbsSjk(mmxzBean.getLgqbmmList());
+			//雷管标识数据块个数
+			res[dataIndex] = (byte) (Integer.valueOf((String) map.get("count")) / 256);
+			dataIndex ++;
+			res[dataIndex] = (byte) (Integer.valueOf((String) map.get("count")) % 256);
+			dataIndex ++;
+			if("0".equals(map.get("count"))){
+				/**
+				 * 修改数据块个数为0的时候不传块内容长度以及块内数据，直接传下面数据
+				 */
+			}else{
+				//雷管标识数据块内容长度
+				res[dataIndex] = (byte) (Integer.valueOf((String) map.get("length")) / 256);
+				dataIndex ++;
+				res[dataIndex] = (byte) (Integer.valueOf((String) map.get("length")) % 256);
+				dataIndex ++;
+				//雷管标识数据块
+				if(Integer.valueOf((String) map.get("count")) > 0){
+					b = (byte[]) map.get("b");
+					if(b != null && b.length > 0){
+						System.arraycopy(b, 0, res, dataIndex, Integer.valueOf((String) map.get("length")));
+						dataIndex = dataIndex + Integer.valueOf((String) map.get("length"));
+					}
+				}
+			}
+			//对数据加密
+			byte []tempRes1 = new byte[dataIndex];
+			System.arraycopy(res, 0, tempRes1, 0, dataIndex);
+			byte []tempRes2 = tempRes1;
+			return tempRes2;
+		} catch (Exception e) {
+			logger.error("组装密码下载返回信息出错！", e);
+		}
+		return null;
+	}
+	
+
+	/**
+	 * 组装起爆器编码数据块
+	 * @参数： @param qbqList
+	 * @参数： @return   
+	 * @返回值： byte[]  
+	 * @throws
+	 */
+	public static Map getQbqSjk(Map qbqBean) {
+		byte []b = new byte[1000];
+		byte [] temp = new byte[100];
+		Map map = new HashMap();
+		String str;
+		int dataIndex = 0;
+		if(qbqBean != null ){
+			
+			map = qbqBean;
+			str = (String) map.get("qbqbh");
+			b[dataIndex] = (byte) str.length();
+			dataIndex++;
+			temp = str.getBytes();
+			System.arraycopy(temp, 0, b, dataIndex, temp.length);
+			dataIndex = dataIndex + temp.length;
+			
+			map.put("count", 1+"");
+			map.put("length", dataIndex+"");
+			map.put("b", b);
+		}else{
+			map.put("count", 0+"");
+			map.put("length", 0+"");
+		}
+		return map;
+	}
+
+	/**
+	 * 组装准爆区域数据块
+	 * @param qqcs 
+	 * @参数： @param zbqyList
+	 * @参数： @return   
+	 * @返回值： Map  
+	 * @throws
+	 */
+	public static Map getZbqySjk(DzlgReqBean mmxzBean) {
+		byte []b = new byte[1000];
+		byte [] temp = new byte[100];
+		Map map = new HashMap();
+		String str;
+		int dataIndex = 0;
+		int count = 0;
+		List zbqyList = mmxzBean.getZbqyList();
+		if(zbqyList != null && zbqyList.size() > 0){
+			for (int i = 0; i < zbqyList.size(); i++) {
+				map = (Map) zbqyList.get(i);
+				if(false){
+					/**
+					 * 圆形准爆区域
+					 */
+					//准爆区域区域类型 0：圆形 1：矩形
+					b[dataIndex] = 0;
+					dataIndex++;
+					//准爆区域中心位置经度长度
+					b[dataIndex] = 4;
+					dataIndex++;
+					//准爆区域中心位置经度
+					str = map.get("jd") == null ? "":map.get("jd").toString();//东经
+					if(str.length() > 0){
+						System.arraycopy(HexUtil.convertStringTo4Bytes(str), 0, b, dataIndex, 4);
+						dataIndex +=4;
+					}
+					b[dataIndex] = 4;
+					dataIndex++;
+					//准爆区域中心位置纬度
+					str = map.get("wd") == null ? "":map.get("wd").toString();//西经
+					if(str.length() > 0){
+						System.arraycopy(HexUtil.convertStringTo4Bytes(str), 0, b, dataIndex, 4);
+						dataIndex +=4;
+					}
+					//准爆区域半径长度
+					b[dataIndex] = 4;
+					dataIndex ++;
+					//准爆区域半径
+					str =  map.get("radius").toString();
+					if(str.length() > 0){
+						System.arraycopy(HexUtil.convertStringTo4Bytes(str), 0, b, dataIndex, 4);
+						dataIndex +=4;
+					}
+					
+				}else{
+					/**
+					 * 矩形准爆区域
+					 */
+					//准爆区域区域类型 0：圆形 1：矩形
+					b[dataIndex] = 1;
+					dataIndex++;
+					String jwdStr = LngLatUtils.ConvertDistanceToLogLat(map.get("radius").toString(),  map.get("jd")+","+ map.get("wd"), 315);//左上角经纬度
+					String [] jwdStrs = jwdStr.split(",");
+					//矩形准爆区域经度长度（左上角）
+					b[dataIndex] = 4;
+					dataIndex++;
+					//矩形准爆区域经度（左上角）
+					str = jwdStrs[0];
+					if(str.length() > 0){
+						System.arraycopy(HexUtil.convertStringTo4Bytes(str), 0, b, dataIndex, 4);
+						dataIndex +=4;
+					}
+					//矩形准爆区域纬度长度（左上角）
+					b[dataIndex] = 4;
+					dataIndex++;
+					//矩形准爆区域纬度（左上角）
+					str = jwdStrs[1];
+					if(str.length() > 0){
+						System.arraycopy(HexUtil.convertStringTo4Bytes(str), 0, b, dataIndex, 4);
+						dataIndex +=4;
+					}
+					jwdStr = LngLatUtils.ConvertDistanceToLogLat(map.get("radius").toString(),  map.get("jd")+","+ map.get("wd"), 135);//右下角经纬度
+					jwdStrs = jwdStr.split(",");
+					//矩形准爆区域经度长度（右下角）
+					b[dataIndex] = 4;
+					dataIndex++;
+					//矩形准爆区域经度（右下角）
+					str = jwdStrs[0];
+					if(str.length() > 0){
+						System.arraycopy(HexUtil.convertStringTo4Bytes(str), 0, b, dataIndex, 4);
+						dataIndex +=4;
+					}
+					//矩形准爆区域纬度长度（右下角）
+					b[dataIndex] = 4;
+					dataIndex++;
+					//矩形准爆区域纬度（右下角）
+					str = jwdStrs[1];
+					if(str.length() > 0){
+						System.arraycopy(HexUtil.convertStringTo4Bytes(str), 0, b, dataIndex, 4);
+						dataIndex +=4;
+					}
+				}
+				//准爆起始时间长度	
+				b[dataIndex] = (byte)6;
+				dataIndex++;
+				//准爆起始时间
+				str = (String) map.get("szsj") == null ? DateUtils.getCurrentData("yyyy-MM-dd HH:mm:ss"):  map.get("szsj").toString();
+				b[dataIndex] = Byte.valueOf(str.substring(2, 4));
+				dataIndex++;
+				b[dataIndex] = Byte.valueOf(str.substring(5, 7));
+				dataIndex++;
+				b[dataIndex] = Byte.valueOf(str.substring(8, 10));
+				dataIndex++;
+				b[dataIndex] = Byte.valueOf(str.substring(11, 13));
+				dataIndex++;
+				b[dataIndex] = Byte.valueOf(str.substring(14, 16));
+				dataIndex++;
+				b[dataIndex] = Byte.valueOf(str.substring(17, 19));
+				dataIndex++;
+			}
+		map.put("count", zbqyList.size()+"");
+		map.put("length", dataIndex+"");
+		map.put("b", b);
+		}else{
+			map.put("count", 0+"");
+			map.put("length",0+"");
+		}
+		return map;
+	}
+
+	/**
+	 * 组装禁爆区域数据块
+	 * @参数： @param jbqyList
+	 * @参数： @return   
+	 * @返回值： Map  
+	 * @throws
+	 */
+	public static Map getJbqySjk(DzlgReqBean mmxzBean) {
+		byte []b = new byte[1000];
+		byte [] temp = new byte[100];
+		Map map = new HashMap();
+		String str;
+		int dataIndex = 0;
+		int count = 0;
+		List jbqyList = mmxzBean.getJbqyList();
+		if(jbqyList != null && jbqyList.size() > 0){
+			for (int i = 0; i < jbqyList.size(); i++) {
+				map = (Map) jbqyList.get(i);
+				if(false){
+					/**
+					 * 圆形禁爆区域
+					 */
+					//禁爆区域类型 0：圆形 1：矩形  2: 行政区划
+					b[dataIndex] = 1;
+					dataIndex++;
+					//禁爆区域中心位置经度长度
+					b[dataIndex] = 4;
+					dataIndex++;
+					//禁爆区域中心位置经度
+					str = map.get("jd") == null ? "":map.get("jd").toString();//东经
+					if(str.length() > 0){
+						System.arraycopy(HexUtil.convertStringTo4Bytes(str), 0, b, dataIndex, 4);
+						dataIndex +=4;
+					}
+					// 禁爆区域中心位置纬度长度
+					b[dataIndex] = 4;
+					dataIndex++;
+					//禁爆区域中心位置纬度
+					str = map.get("wd") == null ? "":map.get("wd").toString();//西经
+					if(str.length() > 0){
+						System.arraycopy(HexUtil.convertStringTo4Bytes(str), 0, b, dataIndex, 4);
+						dataIndex +=4;
+					}
+					//禁爆区域半径长度
+					b[dataIndex] = 4;
+					dataIndex ++;
+					//禁爆区域半径
+					str =  map.get("radius").toString();
+					System.arraycopy(HexUtil.convertStringTo4Bytes(str), 0, b, dataIndex, 4);
+					dataIndex +=4;
+				}else if(true){
+					/**
+					 * 矩形禁爆区域
+					 */
+					//禁爆区域类型 0：圆形 1：矩形   2: 行政区划
+					b[dataIndex] = 1;
+					dataIndex++;
+					String jwdStr = LngLatUtils.ConvertDistanceToLogLat(map.get("radius").toString(),  map.get("jd")+","+ map.get("wd"), 315);//左上角经纬度
+					String [] jwdStrs = jwdStr.split(",");
+					//矩形禁爆区域经度长度（左上角）
+					b[dataIndex] = 4;
+					dataIndex++;
+					//矩形禁爆区域经度（左上角）
+					str = jwdStrs[0];
+					if(str.length() > 0){
+						System.arraycopy(HexUtil.convertStringTo4Bytes(str), 0, b, dataIndex, 4);
+						dataIndex +=4;
+					}
+					//矩形禁爆区域纬度长度（左上角）
+					b[dataIndex] = 4;
+					dataIndex++;
+					//矩形禁爆区域纬度（左上角）
+					str = jwdStrs[1];
+					if(str.length() > 0){
+						System.arraycopy(HexUtil.convertStringTo4Bytes(str), 0, b, dataIndex, 4);
+						dataIndex +=4;
+					}
+					jwdStr = LngLatUtils.ConvertDistanceToLogLat(map.get("radius").toString(),  map.get("jd")+","+ map.get("wd"), 135);//右下角经纬度
+					jwdStrs = jwdStr.split(",");
+					//矩形禁爆区域经度长度（右下角）
+					b[dataIndex] = 4;
+					dataIndex++;
+					//矩形禁爆区域经度（右下角）
+					str = jwdStrs[0];
+					if(str.length() > 0){
+						System.arraycopy(HexUtil.convertStringTo4Bytes(str), 0, b, dataIndex, 4);
+						dataIndex +=4;
+					}
+					//矩形禁爆区域纬度长度（右下角）
+					b[dataIndex] = 4;
+					dataIndex++;
+					//矩形禁爆区域纬度（右下角）
+					str = jwdStrs[1];
+					if(str.length() > 0){
+						System.arraycopy(HexUtil.convertStringTo4Bytes(str), 0, b, dataIndex, 4);
+						dataIndex +=4;
+					}
+				}else if(MBDZLGConstant.GZLX_XZQH.equals(map.get("gzlx"))){
+					/**
+					 * 禁爆行政区划
+					 */
+					//禁爆区域类型 0：圆形 1：矩形   2: 行政区划
+					b[dataIndex] = 1;
+					dataIndex++;
+					//禁爆行政区划长度 
+					b[dataIndex] = 6;
+					dataIndex++;
+					//禁爆行政区划
+					System.arraycopy(map.get("jbxzqh").toString().getBytes(), 0, b, dataIndex, 6);
+					dataIndex +=6;
+				}
+				//禁爆起始时间长度
+				b[dataIndex] = (byte)6;
+				dataIndex++;
+				//禁爆起始时间
+				str = map.get("qssj").toString();
+				b[dataIndex] = Byte.valueOf(str.substring(2, 4));
+				dataIndex++;
+				b[dataIndex] = Byte.valueOf(str.substring(5, 7));
+				dataIndex++;
+				b[dataIndex] = Byte.valueOf(str.substring(8, 10));
+				dataIndex++;
+				b[dataIndex] = Byte.valueOf(str.substring(11, 13));
+				dataIndex++;
+				b[dataIndex] = Byte.valueOf(str.substring(14, 16));
+				dataIndex++;
+				b[dataIndex] = Byte.valueOf(str.substring(17, 19));
+				dataIndex++;
+				//禁爆结束时间长度
+				b[dataIndex] = (byte)6;
+				dataIndex++;
+				//禁爆结束时间	
+				str = map.get("jssj").toString();
+				b[dataIndex] = Byte.valueOf(str.substring(2, 4));
+				dataIndex++;
+				b[dataIndex] = Byte.valueOf(str.substring(5, 7));
+				dataIndex++;
+				b[dataIndex] = Byte.valueOf(str.substring(8, 10));
+				dataIndex++;
+				b[dataIndex] = Byte.valueOf(str.substring(11, 13));
+				dataIndex++;
+				b[dataIndex] = Byte.valueOf(str.substring(14, 16));
+				dataIndex++;
+				b[dataIndex] = Byte.valueOf(str.substring(17, 19));
+				dataIndex++;
+				
+			}
+			map.put("count", jbqyList.size()+"");
+			map.put("length", dataIndex+"");
+			map.put("b", b);
+		}else{
+			map.put("count", 0+"");
+			map.put("length",0+"");
+		}	
+		return map;
+	}
+	
+
+	/**
+	 * 组装雷管标示数据块
+	 * @参数： @param dzlgUidList
+	 * @参数： @return   
+	 * @返回值： Map  
+	 * @throws
+	 */
+	public static Map getLgbsSjk(List dzlgUidList) {
+		byte[] b = null;
+		if(dzlgUidList == null){
+			b = new byte[1000];
+		}else{
+			b = new byte[50*(dzlgUidList.size()+4)];
+		}
+		byte [] temp = new byte[1000];
+		Map map = new HashMap();
+		String str;
+		int dataIndex = 0;
+		int count = 0;
+		if(dzlgUidList != null && dzlgUidList.size() > 0){
+			for (int i = 0; i < dzlgUidList.size(); i++) {
+				map = (Map) dzlgUidList.get(i);
+				//雷管壳体编码长度
+				str = map.get("lgfbh") == null ? "" : (String)map.get("lgfbh");
+				b[dataIndex] = (byte) str.length();
+				dataIndex ++;
+				//雷管壳体编码
+				temp = str.getBytes();
+				System.arraycopy(temp, 0, b, dataIndex, temp.length);
+				dataIndex = dataIndex + temp.length;
+				//雷管UID码长度
+				str = map.get("lguid") == null ? "" : (String)map.get("lguid");
+				b[dataIndex] = (byte) str.length();
+				dataIndex ++;
+				//雷管UID码
+				temp = str.getBytes();
+				System.arraycopy(temp, 0, b, dataIndex, temp.length);
+				dataIndex = dataIndex + temp.length;
+				//雷管工作码
+				
+				if((map.get("lgfbh") == null || "".equals(map.get("lgfbh")))
+						&& (map.get("lguid") == null || "".equals(map.get("lguid")))){
+					/**
+					 * 密码中心无雷管信息
+					 */
+					//工作码长度
+					str = "";
+					b[dataIndex] = (byte) str.length();
+					dataIndex ++;
+					//工作码
+					temp = str.getBytes();
+					for (int j = 0; j < temp.length; j++) {
+						temp[j] = 0;
+					}
+					System.arraycopy(temp, 0, b, dataIndex, temp.length);
+					dataIndex = dataIndex + temp.length;
+					//雷管工作码错误信息长度
+					b[dataIndex] = (byte)1;
+					dataIndex++;
+					b[dataIndex] = (byte)3;//雷管不存在
+				}else if( map.get("ishmd") != null && map.get("ishmd").equals(MBDZLGConstant.IS_HMD_YES)){
+					/**
+					 * 黑名单雷管
+					 */
+					//工作码长度
+					str =  "" ;
+					b[dataIndex] = (byte) str.length();
+					dataIndex ++;
+					//工作码
+					temp = str.getBytes();
+					for (int j = 0; j < temp.length; j++) {
+						temp[j] = 0;
+					}
+					System.arraycopy(temp, 0, b, dataIndex, temp.length);
+					dataIndex = dataIndex + temp.length;
+					//雷管工作码错误信息长度
+					b[dataIndex] = (byte)1;
+					dataIndex++;
+					b[dataIndex] = (byte)1;//雷管在黑名单中
+				}else if( map.get("syzt") != null && map.get("syzt").equals(MBDZLGConstant.SYZT_YSY)){
+					/**
+					 * 已使用的雷管
+					 */
+					//工作码长度
+					str = "";
+					b[dataIndex] = (byte) str.length();
+					dataIndex ++;
+					//工作码
+					temp = str.getBytes();
+					for (int j = 0; j < temp.length; j++) {
+						temp[j] = 0;
+					}
+					System.arraycopy(temp, 0, b, dataIndex, temp.length);
+					dataIndex = dataIndex + temp.length;
+					//雷管工作码错误信息长度
+					b[dataIndex] = (byte)1;
+					dataIndex++;
+					b[dataIndex] = (byte)2;//雷管已使用
+				}else{
+					/**
+					 * 正常的雷管
+					 */
+					String mwjl = (String) map.get("mwjl");
+					//工作码长度
+					str = (mwjl == null ? "" : DzlgParseHelper.parseGzm(mwjl));
+					b[dataIndex] = (byte) str.length();
+					dataIndex ++;
+					//工作码
+					temp = str.getBytes();
+					System.arraycopy(temp, 0, b, dataIndex, temp.length);
+					dataIndex = dataIndex + temp.length;
+					//雷管工作码错误信息长度
+					b[dataIndex] = (byte)1;
+					dataIndex++;
+					b[dataIndex] = (byte)0;//可以使用
+				}
+				dataIndex++;
+			}
+			map.put("count", dzlgUidList.size()+"");
+			map.put("length", dataIndex+"");
+			map.put("b", b);
+		}else{
+			map.put("count", 0+"");
+			map.put("length",0+"");
+		}
+		return map;
+	}
+	
+	
+	
+	
+	/**
+	 * 组装密码下载返回信息【http】
+	 * @param dzlgxxBean
+	 * @return
+	 * @author wujiaxu
+	 * @Time 2017-7-31 下午5:34:27
+	 */
+	private static  String buildMmxzMsg_Json(DzlgReqBean dzlgxxBean)  {
+		logger.info("==============="+dzlgxxBean.getTitle()+"返回信息组装开始!");
+		Map map = new LinkedHashMap();
+		map.put("cwxx", "");
+	
+		/**
+		 * 有错误直接返回
+		 */
+		if(dzlgxxBean.getError() != 0){
+			map.put("cwxx", dzlgxxBean.getError()+"");
+			JSONObject jsObj = JSONObject.fromObject(map);
+			logger.info("==============="+dzlgxxBean.getTitle()+"返回信息组装结束,信息详情【"+jsObj.toString()+"】!");
+			return  jsObj.toString();
+		}
+		map.put("sqrq", DateUtils.getCurrentData("yyyy-MM-dd HH:mm:ss"));
+		List<Map<String,Object>> uidList = new ArrayList<Map<String,Object>>();
+		List<Map<String,Object>> zbqyList = new ArrayList<Map<String,Object>>();
+		List<Map<String,Object>> lgList = new ArrayList<Map<String,Object>>();
+		List<Map<String,Object>> jbqyList = new ArrayList<Map<String,Object>>();
+		Map uidMap = new LinkedHashMap();
+		uidMap.put("sbbh", dzlgxxBean.getQbqbh());
+		uidList.add(uidMap);
+		map.put("sbbhs", uidList);
+		
+		if(dzlgxxBean.getZbqyList() != null && dzlgxxBean.getZbqyList().size() >0){
+			for (int i = 0; i < dzlgxxBean.getZbqyList().size(); i++) {
+				Map tempMap = (Map) dzlgxxBean.getZbqyList().get(i);
+				Map zbqyMap = new LinkedHashMap();
+				zbqyMap.put("zbqymc", tempMap.get("bpqymc"));
+				zbqyMap.put("zbqyjd", tempMap.get("jd"));
+				zbqyMap.put("zbqywd", tempMap.get("wd"));
+				zbqyMap.put("zbqybj", tempMap.get("radius"));
+				zbqyMap.put("zbqssj", null);
+				zbqyMap.put("zbjzsj", null);
+				zbqyList.add(zbqyMap);
+			}
+		}
+		Map zbqyMap2 = new LinkedHashMap();
+		zbqyMap2.put("zbqy", zbqyList);
+		map.put("zbqys", zbqyMap2);
+		
+		if(dzlgxxBean.getJbqyList() != null && dzlgxxBean.getJbqyList().size() > 0){
+			for (int i = 0; i < dzlgxxBean.getJbqyList().size(); i++) {
+				Map tempMap = (Map) dzlgxxBean.getJbqyList().get(i);
+				Map jbqyMap = new LinkedHashMap();
+				jbqyMap.put("jbqyjd", tempMap.get("jd"));
+				jbqyMap.put("jbqywd", tempMap.get("wd"));
+				jbqyMap.put("jbqybj", tempMap.get("radius"));
+				jbqyMap.put("jbqssj", tempMap.get("qssj"));
+				jbqyMap.put("jbjzsj", tempMap.get("jssj"));
+				jbqyList.add(jbqyMap);
+			}
+		}
+		
+		Map jbqyMap2 = new LinkedHashMap();
+		jbqyMap2.put("jbqy", jbqyList);
+		map.put("jbqys", jbqyMap2);
+		
+		List LgyxqList = (List) DicCache.getInstance().getCache().get("t_dzlg_lgyxq");
+		Calendar now = Calendar.getInstance();  
+	    now.setTime(DateUtils.getCurrentDate());  
+	    now.set(Calendar.DATE, now.get(Calendar.DATE) + Integer.valueOf(((Map)LgyxqList.get(0)).get("lgyxq").toString())); //有效期
+	    Date dateNow = now.getTime();
+	    SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"); 
+	    String yxq = sdf.format(dateNow);
+	    if(dzlgxxBean.getLgqbmmList() != null &&  dzlgxxBean.getLgqbmmList().size() > 0){
+	    	for (int i = 0; i < dzlgxxBean.getLgqbmmList().size(); i++) {
+	    		Map tempMap = (Map) dzlgxxBean.getLgqbmmList().get(i);
+	    		Map lgMap = new LinkedHashMap();
+	    		/*String lguid = (String) tempMap.get("lguid");
+				String lgfbh = (String) tempMap.get("lgfbh");*/
+	    		
+	    		String lgfbh = (tempMap.get("lgfbh") == null ? tempMap.get("lgfbh_temp") == null ? "isnull" : (String)tempMap.get("lgfbh_temp") : (String)tempMap.get("lgfbh"));
+	    		String lguid = (tempMap.get("lguid") == null ? tempMap.get("lguid_temp") == null ? "isnull" : (String)tempMap.get("lguid_temp") : (String)tempMap.get("lguid"));
+	    		
+	    		
+	    		//只有离线下载返回发编号
+	    		if(MBDZLGConstant.TXLX_LXXZ.equals(dzlgxxBean.getTxlx())){
+	    			lgMap.put("fbh", lgfbh);
+	    		}
+	    		
+	    		String ishmd = (String) tempMap.get("ishmd");
+	    		String syzt = (String) tempMap.get("syzt");
+	    		
+	    		lgMap.put("uid", lguid);
+	    		if(lguid == null || "isnull".equals(lguid) || lgfbh == null || "isnull".equals(lgfbh)){
+	    			//不存在的雷管
+	    			lgMap.put("yxq", "");
+	    			lgMap.put("gzm", "");
+	    			lgMap.put("gzmcwxx", MBDZLGConstant.LG_CWXX_BCZ);
+	    		}else if (ishmd != null && MBDZLGConstant.IS_HMD_YES.equals(ishmd)){
+	    			//黑名单雷管
+	    			lgMap.put("yxq", "");
+	    			lgMap.put("gzm", "");
+	    			lgMap.put("gzmcwxx", MBDZLGConstant.LG_CWXX_ISHMD);
+	    		}else if(syzt != null && MBDZLGConstant.SYZT_YSY.equals(syzt)){
+	    			//已使用的雷管
+	    			lgMap.put("yxq", "");
+	    			lgMap.put("gzm", "");
+	    			lgMap.put("gzmcwxx", MBDZLGConstant.LG_CWXX_YSY);
+	    		}else{
+	    			//正常雷管
+	    			lgMap.put("yxq", yxq);
+	    			String mwjl = (String) tempMap.get("mwjl");
+	    			lgMap.put("gzm", DzlgParseHelper.parseGzm(mwjl));
+	    			lgMap.put("gzmcwxx", MBDZLGConstant.LG_CWXX_ZC);
+	    		}
+	    		lgList.add(lgMap);
+	    	}
+	    }
+		Map lgMap2 = new LinkedHashMap();
+		lgMap2.put("lg", lgList);
+		map.put("lgs", lgMap2);
+
+		JSONObject jsObj = JSONObject.fromObject(map);
+		logger.info("==============="+dzlgxxBean.getTitle()+"返回信息组装结束,信息详情【"+jsObj.toString()+"】!");
+		return  jsObj.toString();
+		//return jsObj.toString();
+	}
+	
+	
+	/**
+	 * 返回信息
+	 * @param dzlgxxBean
+	 * @return
+	 * @author wujiaxu
+	 * @throws Exception 
+	 * @Time 2017-7-31 下午5:30:20
+	 */
+	public static Object makeReMsg(DzlgReqBean dzlgxxBean) {
+		if(dzlgxxBean == null || dzlgxxBean.getJklx() == null || dzlgxxBean.getDataType() == null){
+			return null;
+		}
+		if(MBDZLGConstant.JKLX_HTTP.equals(dzlgxxBean.getJklx())){
+			/**
+			 * http请求的返回
+			 */
+			if(MBDZLGConstant.DATATYPE_HTTP_GXGZ == dzlgxxBean.getDataType()
+					||	MBDZLGConstant.DATATYPE_HTTP_LXXZ == dzlgxxBean.getDataType()
+					||	MBDZLGConstant.DATATYPE_HTTP_ZZXZ == dzlgxxBean.getDataType()){
+				//组装【在线下载、离线下载、更新规则】返回信息
+				return buildMmxzMsg_Json(dzlgxxBean);
+			}else if(MBDZLGConstant.DATATYPE_HTTP_QBQWZSB == dzlgxxBean.getDataType()){
+				//组装【位置上报】返回信息
+				return buildWzsbMsg_Json(dzlgxxBean);
+			}else if(MBDZLGConstant.DATATYPE_HTTP_SYXXSB == dzlgxxBean.getDataType()){
+				//组装【使用上报】返回信息
+				return buildSysbMsg_Json(dzlgxxBean);
+			}
+		}else{
+			/**
+			 * socket请求的返回
+			 */
+			if(MBDZLGConstant.DATATYPE_ZXXZ_INP_JS == dzlgxxBean.getDataType()
+					||	MBDZLGConstant.DATATYPE_ZXXZ_INP_FS == dzlgxxBean.getDataType()
+					||	MBDZLGConstant.DATATYPE_LXXZ_INP_FS == dzlgxxBean.getDataType()
+					||  MBDZLGConstant.DATATYPE_GXGZ_INP == dzlgxxBean.getDataType()){
+				//组装【在线下载（简式）、在线下载（复式）、离线下载、更新规则】返回信息
+				return buildMmxzMsg_Byte(dzlgxxBean);
+			}else if(MBDZLGConstant.DATATYPE_QBQWZSB_INP == dzlgxxBean.getDataType()){
+				//组装【位置上报】返回信息
+				return buildWzsbMsg_Byte(dzlgxxBean);
+			}else if(MBDZLGConstant.DATATYPE_SYXXSB_INP == dzlgxxBean.getDataType()){
+				//组装【使用上报】返回信息
+				return buildSysbMsg_Byte(dzlgxxBean);
+			}
+		}
+		return null; 
+	}
+
+	
+	
+	/**
+	 *  组装起爆器使用上报返回信息【http】
+	 * @param dzlgxxBean
+	 * @return
+	 * @author wujiaxu
+	 * @Time 2017-7-31 下午6:22:32
+	 */
+	private static  String buildSysbMsg_Json(DzlgReqBean dzlgxxBean) {
+		Map resMap = new HashMap();
+		resMap.put("success", MBDZLGConstant.ERROR_HTTPSYSB_TRUE+"");
+		if(MBDZLGConstant.CORRECT != dzlgxxBean.getError()){
+			resMap.put("success", MBDZLGConstant.ERROR_HTTPSYSB_FAIL+"");
+			resMap.put("cwxx", dzlgxxBean.getError()+"");
+		}
+
+		JSONObject jsObj = JSONObject.fromObject(resMap);
+		return jsObj.toString();
+	}
+	
+	/**
+	 *  组装起爆器使用上报返回信息【socket】
+	 * @param dzlgxxBean
+	 * @return
+	 * @author wujiaxu
+	 * @throws Exception 
+	 * @Time 2017-7-19 上午11:47:02
+	 */
+	private static byte[] buildSysbMsg_Byte(DzlgReqBean dzlgxxBean) {
+		byte[] res = new byte[1];
+		
+		//失败
+		if(dzlgxxBean.getError() != MBDZLGConstant.CORRECT){
+			res[0] = dzlgxxBean.getError() == MBDZLGConstant.ERROR_CONNECT ? (byte)MBDZLGConstant.ERROR_CONNECT : (byte)dzlgxxBean.getError();
+			return res;
+		}
+		//成功
+		res[0] = MBDZLGConstant.CORRECT;
+		return res;
+		
+	}
+
+
+	
+	/**
+	 *组装起爆器位置上报返回信息【http】
+	 * @Title:
+	 * @author fandengyong
+	 * @参数: @param dzlgxxBean
+	 * @参数: @return
+	 * @date 2017-7-25 上午9:20:38
+	 */
+	private static String buildWzsbMsg_Json(DzlgReqBean dzlgxxBean){
+		Map resMap = new HashMap();
+		
+		resMap.put("cwxx", dzlgxxBean.getError()+"");
+	
+		JSONObject jsObj = JSONObject.fromObject(resMap);
+		return jsObj.toString();
+	}
+	
+	
+	/**
+	 *  组装起爆器位置上报返回信息【socket】
+	 * @param dzlgxxBean
+	 * @return
+	 * @author wujiaxu
+	 * @throws Exception 
+	 * @Time 2017-7-19 上午11:47:02
+	 */
+	private static byte[] buildWzsbMsg_Byte(DzlgReqBean dzlgxxBean) {
+		byte[] res = new byte[1];
+		
+		//失败
+		if(dzlgxxBean.getError() != MBDZLGConstant.CORRECT){
+			res[0] =  dzlgxxBean.getError() == MBDZLGConstant.ERROR_CONNECT ? (byte)MBDZLGConstant.ERROR_CONNECT : (byte)dzlgxxBean.getError();
+			return res;
+		}
+		
+		//成功
+		res[0] = MBDZLGConstant.CORRECT;
+		return res;
+		
+	}
+	
+	public static String encode_http(String str){
+		return Base64.encode(TripleDES3_DzlgMmxz.encode(str));
+		
+	}
+	
+	public static byte[] encode_socket(byte[] str) throws Exception{
+		return TripleDES_Socket.des3EncodeECB(str);
+		
+	}
+}

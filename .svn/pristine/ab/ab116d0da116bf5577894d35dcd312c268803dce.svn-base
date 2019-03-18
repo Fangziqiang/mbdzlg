@@ -1,0 +1,175 @@
+package com.jadlsoft.socket;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
+import com.jadlsoft.business.BaseManager;
+import com.jadlsoft.business.dzlg.DzlgManager;
+import com.jadlsoft.utils.DateUtils;
+import com.jadlsoft.utils.HexUtil;
+import com.jadlsoft.utils.SecretUtils;
+import com.jadlsoft.utils.SpringBeanFactory;
+
+public class DzlgQbqwzsbManager extends BaseManager implements Runnable {
+	private static Logger logger = Logger.getLogger(DzlgQbqwzsbManager.class);
+	
+	private Socket socket;
+	private int delayTime = 100000;
+
+	public DzlgQbqwzsbManager(Socket socket) {
+		this.socket = socket;
+	}
+	
+	public void run() {
+		while (!socket.isClosed()) {
+			logger.info("-------起爆器位置上报socket服务开始!-------");
+			Date ljdate = DateUtils.getCurrentDate("yyyy-MM-dd HH:mm:ss");
+			try {
+				socket.setKeepAlive(true);
+				socket.setSoTimeout(delayTime);
+				//1.读取客服端请求信息
+				InputStream is = socket.getInputStream();
+				int count = 0; 
+				while (count == 0) { 
+				   count = is.available(); 
+				   if(DateUtils.getCurrentDate("yyyy-MM-dd HH:mm:ss").getTime()-ljdate.getTime() > 20*1000){
+                       logger.info("未接收到数据，socket连接关闭！");
+                       return;
+				   }
+				} 
+				byte[] b = new byte[count]; 
+		        int rc = 0;
+		        int len = 0;
+	            while(rc < count){
+	            	len = is.read(b);
+	            	rc += len;
+	            }
+	           	
+	            //2.数据帧解密
+ 	            b = SecretUtils.decodeData(b);
+	            
+	            //3.请求电子雷管下载密码
+	            byte[] res = getDzlgqbmmxx(b);
+	            
+	            //4.数据帧加密
+	            //res = SecretUtils.encodeData(res);
+	            
+				//5.请求结果返回客户端
+	            OutputStream os = socket.getOutputStream();
+	            os.write(res);
+	            os.flush();
+	           
+				//6.关闭资源
+				os.close();
+				is.close();
+			} catch (Exception e) {
+				logger.info("服务器run处理起爆器位置上报异常！", e);
+			} finally {
+				if (socket != null) {   
+                    try {   
+                        socket.close();   
+                    } catch (Exception e) {   
+                        socket = null;   
+                        logger.info("服务器关闭socket异常！", e);
+                    }   
+                }   
+				logger.info("-------起爆器位置上报服务结束！-------");
+			}
+		}
+	}
+	
+
+	private byte[] getDzlgqbmmxx(byte[] b) {
+		DzlgManager dzlgManager = (DzlgManager) SpringBeanFactory.getBean("dzlgManager");
+		Map map = parseDzlQbqwzsbMsg(b);
+		/*Map map = new HashMap();
+		map.put("qbqbh", "cs002");
+		map.put("jd", 113.388);
+		map.put("wd", 27.801);
+		map.put("dwdm", 11);
+		map.put("dataType", 9);*/
+		/**
+		 * 2.创建请求XMl文件
+		 */
+		String strXml = dzlgManager.createXml(map);
+		/**
+		 * 调用webservice访问网络服务平台
+		 */
+		logger.info("********************************");
+		logger.info("Socket位置上报");
+		logger.info("起爆器编号："+map.get("qbqbh"));
+		logger.info("单位代码："+map.get("dwdm"));
+		logger.info("经度："+map.get("jd"));
+		logger.info("纬度："+map.get("wd"));
+		byte[] res = (byte[]) dzlgManager.getSocketReturnValue(strXml,map);
+		logger.info("返回数据：");
+		for (int i = 0; i < res.length; i++) {
+			System.out.print(res[i]+" ");
+			logger.info(res[i]+" ");
+		}
+		logger.info("********************************");
+		return res;
+	}
+
+	/**
+	 * 1.解析请求数据获取请求参数
+	 * @参数： @param b
+	 * @参数： @return   
+	 * @返回值： DzlgQbqwzsbBean  
+	 * @throws
+	 */
+	private Map parseDzlQbqwzsbMsg(byte[] b){
+		if(b == null || "".equals(b)){
+			return null;
+		}
+		Map map = new HashMap();
+		int dataIndex = 0;
+		
+		//1.数据头			（2字节）
+		int dataTitle = HexUtil.convertBytes(b, 0, 2);
+		dataIndex += 2;
+		//2.数据类型			（1字节）
+		int dataType= HexUtil.convertBytes(b,dataIndex, 1);
+		dataIndex += 1;
+		//3.数据总长度		（4字节）
+		int dataLength = HexUtil.convertBytes(b, dataIndex, 4);
+		dataIndex += 4;
+		//4.起爆器设备编号长度	（1字节）
+		int qbqsbbhLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//5.起爆器设备编号		（qbqsbbhLength字节）
+		String qbqsbbh = String.valueOf(HexUtil.convertASCBytesToString(b, dataIndex, qbqsbbhLength));
+		dataIndex += qbqsbbhLength;
+		//6.经度长度			（1字节）
+		int jdLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//7.经度				（jdLength字节）
+		String jd = String.valueOf(HexUtil.convert4BytesToString(b, dataIndex, jdLength));
+		dataIndex += jdLength;
+		//8.纬度长度			（1字节）
+		int wdLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//9.纬度				（wdLength字节）
+		String wd = String.valueOf(HexUtil.convert4BytesToString(b, dataIndex, wdLength));
+		dataIndex += wdLength;
+		//10.单位代码长度             （1字节）
+		int dwdmLength =HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//11.单位代码                          （dwdmLength字节）
+		String dwdm = String.valueOf(HexUtil.convertASCBytesToString(b, dataIndex, dwdmLength));
+		dataIndex += dwdmLength;
+		
+		map.put("dwdm", dwdm);
+		map.put("jd", jd);
+		map.put("wd", wd);
+		map.put("qbqbh", qbqsbbh);
+		map.put("dataType", dataType);
+		return map;
+	}
+}

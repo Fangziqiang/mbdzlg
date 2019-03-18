@@ -1,0 +1,8 @@
+package com.jadlsoft.business.login;
+
+import java.util.Map;
+
+public interface LoginManager {
+	//查询用户
+	Map findByUser(String username,String password);
+}

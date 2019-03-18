@@ -1,0 +1,69 @@
+package com.jadlsoft.socket;
+
+
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import org.apache.log4j.Logger;
+
+/**
+ * 
+ * 电子雷管密码下载线程（初始化时设置为守护线程）
+ * @作者：吴家旭
+ * @时间：May 24, 2016 1:59:25 PM
+ */
+public class OpenDzlgMmxzSocket extends Thread{
+	
+    private static Logger log = Logger.getLogger(OpenDzlgMmxzSocket.class);	
+  
+    private static ServerSocket serverSocket;
+    private ExecutorService executor;
+  
+    public OpenDzlgMmxzSocket(int port, ExecutorService executor_) {
+    	try {
+			serverSocket = new ServerSocket(port);
+			executor = executor_;
+		} catch (IOException e) {
+			log.info("实例化电子雷管密码下载socket通信出错!", e);
+		}
+    	
+	}
+
+	/**
+	 * 线程运行
+	 */
+	public void run() {
+		try {
+			while(true){
+				Socket socket = serverSocket.accept();
+				//String ip = socket.getInetAddress().getHostAddress();
+				//System.out.println(ip);
+				//每接收到一个Socket就建立一个新的线程来处理它  
+				executor.execute(new DzlgMmxzManager(socket));
+			}
+		} catch (IOException e) {
+			log.info("开启电子雷管密码下载socket服务出错!", e);
+		}  
+	}
+	
+	/**
+	 * 关闭服务
+	 * @参数：
+	 * @返回值：void
+	 */
+	public void stopService(){
+		if(serverSocket != null){ 
+			try {
+				if(serverSocket.isBound() && !serverSocket.isClosed()) 
+					serverSocket.close();
+			} catch (IOException e) {
+				log.info("关闭控制中心socket服务异常!", e);
+			}
+		}
+		
+	}
+
+}

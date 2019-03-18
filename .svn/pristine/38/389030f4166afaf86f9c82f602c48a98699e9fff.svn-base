@@ -1,0 +1,130 @@
+package com.jadlsoft.listener;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+
+import org.apache.log4j.Logger;
+
+import com.jadlsoft.socket.OpenDzlgGzgxSocket;
+import com.jadlsoft.socket.OpenDzlgMmlxxzSocket;
+import com.jadlsoft.socket.OpenDzlgMmxzSocket;
+import com.jadlsoft.socket.OpenDzlgQbqwzsbSocket;
+import com.jadlsoft.socket.OpenDzlgSyxxsbSocket;
+/**
+ * socket通讯监听器
+ *
+ */
+public class DzlgSocketListener implements ServletContextListener{
+	private static Logger log = Logger.getLogger(DzlgSocketListener.class);
+	private ExecutorService executor;	//线程池管理
+	
+	private OpenDzlgMmxzSocket thread_dzlgmmxz;		//电子雷管密码下载线程
+	private OpenDzlgMmlxxzSocket thread_dzlgmmlxxz;	//电子雷管密码离线下载线程
+	private OpenDzlgGzgxSocket thread_dzlggzgx;		//电子雷管准爆、禁爆规则线程
+	private OpenDzlgQbqwzsbSocket thread_dzlgqbqwzsb;	//起爆器位置上报线程
+	private OpenDzlgSyxxsbSocket thread_dzlgsyxxsb;	//电子雷管使用信息上报线程
+	
+	private static final int PORT_DZLGMMXZ = 6082;		//电子雷管密码下载socket端口
+	private static final int PORT_DZLGMMLXXZ = 6083;	//电子雷管密码离线下载socket端口
+	private static final int PORT_DZLGGZGX = 6084;		//电子雷	管准爆、禁爆规则socket端口
+	private static final int PORT_DZLGQBQWZSB = 6085;	//起爆器位置上报socket端口
+	private static final int PORT_DZLGSYXXSB = 6086;	//电子雷管使用信息上报socket端口
+	
+
+
+	public void contextDestroyed(ServletContextEvent contextEvent) {
+		// 随tomcat关闭结束服务器跟java客户端之间的socket监听
+		log.info("关闭socket服务端！");
+		thread_dzlgmmxz.stopService();
+		thread_dzlgmmlxxz.stopService();
+		thread_dzlggzgx.stopService();
+		thread_dzlgqbqwzsb.stopService();
+		thread_dzlgsyxxsb.stopService();
+		thread_dzlgmmxz.stop();
+		thread_dzlgmmlxxz.stop();
+		thread_dzlggzgx.stop();
+		thread_dzlgqbqwzsb.stop();
+		thread_dzlgsyxxsb.stop();
+		executor.shutdown();
+	}
+
+	public void contextInitialized(ServletContextEvent contextEvent) {
+		executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()* 30);//建立线程池
+		startThread_dzlgmmxz();
+		startThread_dzlgmmlxxz();
+		startThread_dzlggzgx();
+		startThread_dzlgqbqwzsb();
+		startThread_dzlgsyxxsb();
+	}
+
+	
+	
+	
+	/**
+	 * 1.开启电子雷管密码下载线程
+	 * @参数：
+	 * @返回值：void
+	 */
+	private void startThread_dzlgmmxz() {
+		thread_dzlgmmxz = new OpenDzlgMmxzSocket(PORT_DZLGMMXZ,executor);//实例化
+		thread_dzlgmmxz.setName("Dzlgmmxz");
+		thread_dzlgmmxz.setDaemon(true);//设置为守护线程
+		thread_dzlgmmxz.start();//运行线程
+		
+	}
+	
+	/**
+	 * 2.开启电子雷管密码离线下载线程
+	 * @参数：
+	 * @返回值：void
+	 */
+	private void startThread_dzlgmmlxxz() {
+		thread_dzlgmmlxxz = new OpenDzlgMmlxxzSocket(PORT_DZLGMMLXXZ,executor);//实例化
+		thread_dzlgmmlxxz.setName("Dzlgmmlxxz");
+		thread_dzlgmmlxxz.setDaemon(true);//设置为守护线程
+		thread_dzlgmmlxxz.start();//运行线程
+		
+	}
+	
+	/**
+	 * 3.开启准爆、禁爆规则更新线程
+	 * @参数：
+	 * @返回值：void
+	 */
+	private void startThread_dzlggzgx() {
+		thread_dzlggzgx = new OpenDzlgGzgxSocket(PORT_DZLGGZGX,executor);//实例化
+		thread_dzlggzgx.setName("Dzlggzgx");
+		thread_dzlggzgx.setDaemon(true);//设置为守护线程
+		thread_dzlggzgx.start();//运行线程
+	}
+	
+	/**
+	 * 4.开启起爆器位置上报线程
+	 * @参数：
+	 * @返回值：void
+	 */
+	private void startThread_dzlgqbqwzsb() {
+		thread_dzlgqbqwzsb = new OpenDzlgQbqwzsbSocket(PORT_DZLGQBQWZSB,executor);//实例化
+		thread_dzlgqbqwzsb.setName("Dzlgqbqwzsb");
+		thread_dzlgqbqwzsb.setDaemon(true);//设置为守护线程
+		thread_dzlgqbqwzsb.start();//运行线程
+		
+	}
+	
+	/**
+	 * 5.开启电子雷管使用信息上报线程
+	 * @参数：
+	 * @返回值：void
+	 */
+	private void startThread_dzlgsyxxsb() {
+		thread_dzlgsyxxsb = new OpenDzlgSyxxsbSocket(PORT_DZLGSYXXSB,executor);//实例化
+		thread_dzlgsyxxsb.setName("Dzlgsyxxsb");
+		thread_dzlgsyxxsb.setDaemon(true);//设置为守护线程
+		thread_dzlgsyxxsb.start();//运行线程
+		
+	}
+	
+}

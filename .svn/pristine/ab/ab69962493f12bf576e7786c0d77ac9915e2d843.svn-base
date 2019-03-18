@@ -1,0 +1,61 @@
+package com.jadlsoft.json;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+
+import com.jadlsoft.business.Yhfw.YhfwManager;
+import com.jadlsoft.business.dzlg.DzlgManager;
+import com.jadlsoft.business.dzlg.DzlgParseUtil;
+import com.jadlsoft.domain.DzlgReqBean;
+import com.jadlsoft.utils.MBDZLGConstant;
+import com.core.utils.SpringBeanFactory;
+
+
+public class DzlgMmxzJsonServlert extends HttpServlet {
+	private static Logger logger = Logger.getLogger(DzlgMmxzJsonServlert.class);
+	public void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		this.doPost(request, response);
+	}
+	public void doPost(HttpServletRequest request, HttpServletResponse response)
+		throws ServletException, IOException {
+		String str = null;
+		PrintWriter out = response.getWriter();
+		
+		DzlgManager dzlgManager = (DzlgManager) SpringBeanFactory.getBean("dzlgManager");
+		 // 读取请求内容
+		response.setCharacterEncoding("GBK");
+		String sbbh = request.getParameter("sbbh");
+		String jd = request.getParameter("jd");
+		String wd = request.getParameter("wd");
+		String uid = request.getParameter("uid");
+		DzlgReqBean dzlgReqBean = DzlgParseUtil.packHttpMmZxxz(sbbh,  jd, wd, uid);
+		try {
+			str = (String) dzlgManager.reqToWlfwpt(dzlgReqBean);
+			
+		} catch (Exception e) {
+			logger.info("请求数据有误");
+			str = "{'cwxx','"+MBDZLGConstant.ERROR_REQ+"'}";
+			e.printStackTrace();
+		}
+		logger.info("http密码在线下载返回数据："+str);
+		out.print(str);
+		logger.info("********************************");
+		
+		//保存申请记录
+		YhfwManager yhfwManager = (YhfwManager) SpringBeanFactory.getBean("yhfwManager");
+		yhfwManager.saveHttpSqInfo(dzlgReqBean,str);
+	}
+	
+}

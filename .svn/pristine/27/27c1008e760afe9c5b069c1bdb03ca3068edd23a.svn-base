@@ -1,0 +1,258 @@
+package com.jadlsoft.domain;
+
+import java.util.List;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
+
+import org.apache.log4j.Logger;
+
+import com.jadlsoft.utils.DzlgMbconstant;
+import com.jadlsoft.utils.SecretUtils;
+
+/**
+ * 
+ * 电子雷管接收信息bean【注解支持bean与xml互转】
+ * @author wujiaxu
+ * @Time 2017-7-4 下午4:20:05
+ *
+ */
+@XmlAccessorType(XmlAccessType.FIELD)  
+@XmlRootElement(name = "sq")
+@XmlType(propOrder = { "qbqbh", "dwdm", "htid", "xmbh", "xtm", "htm", "fbh", "jd", "wd", "uidList","bpsj" ,"bprysfz" ,"dataType","isAddCwxxLenth","cwxx"})  
+public class DzlgxxBean {
+	private static Logger logger = Logger.getLogger(DzlgxxBean.class);
+	
+	/*
+	 * 起爆器编号
+	 */
+	private String qbqbh;
+	/*
+	 * 单位代码
+	 */
+	private String dwdm;
+	/*
+	 * 合同编号
+	 */
+	
+	private String htid;
+	/*
+	 * 项目编号
+	 */
+	private String xmbh;
+	/*
+	 * 箱条码
+	 */
+	private String xtm;
+	/*
+	 * 盒条码
+	 */
+	private String htm;
+	/*
+	 * 发编号
+	 */
+	private String fbh;
+	/*
+	 * 经度
+	 */
+	private String jd;
+	/*
+	 * 纬度
+	 */
+	private String wd;
+	
+
+	@XmlElementWrapper(name = "uids")
+    @XmlElement(name = "uid")
+	private List<String> uidList;
+    
+	/*
+	 * 爆破时间
+	 */
+	private String bpsj;
+
+	/*
+	 * 爆破人员身份证
+	 */
+	private String bprysfz;
+	
+	/*
+	 * 请求类型 
+	 */
+	private Integer dataType;
+	
+	/*
+	 * 错误信息长度  
+	 */
+	private boolean isAddCwxxLenth;
+	/*
+	 * 错误信息
+	 */
+	private Object cwxx;
+	
+
+	public boolean isAddCwxxLenth() {
+		return isAddCwxxLenth;
+	}
+	public void setAddCwxxLenth(boolean isAddCwxxLenth) {
+		this.isAddCwxxLenth = isAddCwxxLenth;
+	}
+	public Object getCwxx() {
+		return cwxx;
+	}
+	public void setCwxx(Object cwxx) {
+		this.cwxx = cwxx;
+	}
+	public List getUidList() {
+		return uidList;
+	}
+    public void setUidList(List<String> uidList) {
+		this.uidList = uidList;
+	}
+	public Integer getDataType() {
+		return dataType;
+	}
+	public void setDataType(Integer dataType) {
+		this.dataType = dataType;
+	}
+	public String getQbqbh() {
+		return qbqbh;
+	}
+	public void setQbqbh(String qbqbh) {
+		this.qbqbh = qbqbh;
+	}
+	public String getDwdm() {
+		return dwdm;
+	}
+	public void setDwdm(String dwdm) {
+		this.dwdm = dwdm;
+	}
+	public String getHtid() {
+		return htid;
+	}
+	public void setHtid(String htid) {
+		this.htid = htid;
+	}
+	public String getXmbh() {
+		return xmbh;
+	}
+	public void setXmbh(String xmbh) {
+		this.xmbh = xmbh;
+	}
+	public String getXtm() {
+		return xtm;
+	}
+	public void setXtm(String xtm) {
+		this.xtm = xtm;
+	}
+	public String getHtm() {
+		return htm;
+	}
+	public void setHtm(String htm) {
+		this.htm = htm;
+	}
+	public String getFbh() {
+		return fbh;
+	}
+	public void setFbh(String fbh) {
+		this.fbh = fbh;
+	}
+	public String getJd() {
+		return jd;
+	}
+	public void setJd(String jd) {
+		this.jd = jd;
+	}
+	public String getWd() {
+		return wd;
+	}
+	public void setWd(String wd) {
+		this.wd = wd;
+	}
+	
+	public String getBpsj() {
+		return bpsj;
+	}
+	public void setBpsj(String bpsj) {
+		this.bpsj = bpsj;
+	}
+	public String getBprysfz() {
+		return bprysfz;
+	}
+	public void setBprysfz(String bprysfz) {
+		this.bprysfz = bprysfz;
+	}
+	
+	/**
+	 * 
+	 * 输出请求日志
+	 * @author wujiaxu
+	 * @Time 2017-7-7 上午10:01:26
+	 */
+	public void showReqLog(){
+		if(this.dataType != null){
+			switch (this.dataType) {
+			case DzlgMbconstant.DATATYPE_ZXXZ_INP_JS:
+				this.showZxxzLog(DzlgMbconstant.SOCKET_XZ_ZXXZ_JS);
+				break;
+			case DzlgMbconstant.DATATYPE_ZXXZ_INP_FS:	
+				this.showZxxzLog(DzlgMbconstant.SOCKET_XZ_ZXXZ_FS);
+				break;
+			default:
+				break;
+			}
+		}
+	}
+	
+	
+	private void showWzsbLog() {
+		// TODO Auto-generated method stub
+		
+	}
+	private void showSyxzLog() {
+		// TODO Auto-generated method stub
+		
+	}
+	private void showLxxzLog() {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	/**
+	 * 在线下载日志
+	 * @param title
+	 * @author wujiaxu
+	 * @Time 2017-7-7 上午10:03:35
+	 */
+	private void showZxxzLog(String title) {
+		logger.info("**********"+title+"**********");
+		logger.info("【参数】起爆器编号："+(this.qbqbh == null ? "" :this.qbqbh));
+		logger.info("【参数】单位代码："+(this.dwdm == null ? "" :this.dwdm));
+		logger.info("【参数】经度："+(this.jd == null ? "" :this.jd));
+		logger.info("【参数】纬度："+(this.wd == null ? "" :this.wd));
+		logger.info("【参数】雷管共 "+(this.uidList == null ? 0 : this.uidList.size())+" 发");
+		logger.info("*************************************");
+	}
+	
+	/**
+	 * 获取错误信息
+	 * @return
+	 * @author wujiaxu
+	 * @Time 2017-7-7 下午3:35:42
+	 */
+	public byte[] getError(byte[] errorInfo){
+		if(this.isAddCwxxLenth){
+			//补充错误信息长度
+			byte[] tempRes = new byte[1 + errorInfo.length];
+			System.arraycopy(SecretUtils.int2bytes(errorInfo.length), 0, tempRes, 0, 1);
+			System.arraycopy(errorInfo, 0, tempRes, 1, tempRes.length);
+			return tempRes;
+		}
+		return errorInfo;
+	}
+	
+}

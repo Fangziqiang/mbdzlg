@@ -1,0 +1,130 @@
+package com.jadlsoft.business.dzlg;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
+import com.core.business.BaseManager;
+import com.core.utils.SpringBeanFactory;
+import com.jadlsoft.domain.DzlgxxBean;
+import com.jadlsoft.utils.DzlgMbconstant;
+import com.jadlsoft.utils.JaxbUtil;
+import com.jadlsoft.utils.SecretUtils;
+import com.jadlsoft.utils.TripleDES_Socket;
+
+public class DzlgSocketManager extends BaseManager {
+	private static Logger logger = Logger.getLogger(DzlgSocketManager.class);
+	
+	
+	private DzlgxxBean dzlgxxBean;
+	
+	/**
+	 * 密码申请【在线】
+	 * @param b 接受到的客户端信息
+	 * @return
+	 * @throws Exception
+	 * @author wujiaxu
+	 * @Time 2017-7-4 下午1:59:32
+	 */
+	public byte[] mmxz_zx(byte[] b) throws Exception{
+		DzlgManager dzlgManager = (DzlgManager) SpringBeanFactory.getBean("dzlgManager");
+		/**
+		 * 1、数据解析
+		 */
+		if(!this.decodeReq(b)){
+			return this.returnMsg((byte[])dzlgxxBean.getCwxx());
+		}
+		
+		/**
+		 * 2、验证完整性
+		 */
+		if(!this.validateInp()){
+			return this.returnMsg((byte[])dzlgxxBean.getCwxx());
+		}
+		
+		/**
+		 * 3、向网络服务平台请求
+		 */
+        byte[] res = (byte[])dzlgManager.reqToWlfwpt(dzlgxxBean);
+        
+        /**
+         * 4、返回结果
+         */
+        return this.returnMsg((byte[])res);
+		
+	}
+	
+	/**
+	 * 返回信息
+	 * @param cwxx
+	 * @return
+	 * @author wujiaxu
+	 * @throws Exception 
+	 * @Time 2017-7-7 下午2:58:25
+	 */
+	private byte[] returnMsg(byte[] msg) throws Exception {
+		//加密
+		msg = TripleDES_Socket.des3EncodeECB(msg);
+		//获取数据头
+		int dateType_Re =  (Integer) DzlgMbconstant.DATATYPE_RETURN.get(dzlgxxBean.getDataType());
+		//组装数据头 
+		return SecretUtils.encodeData(msg,dateType_Re);
+	}
+
+
+	/**
+	 * 
+	 * 验证信息完整性
+	 * @author wujiaxu
+	 * @Time 2017-7-7 下午1:25:33
+	 */
+	private boolean validateInp() {
+		if( dzlgxxBean.getQbqbh() == null && dzlgxxBean.getDwdm() == null &&  dzlgxxBean.getHtid() == null && dzlgxxBean.getXmbh() == null){
+			logger.info("起爆器编号和作业任务必须有一个！");
+			dzlgxxBean.setCwxx(dzlgxxBean.getError(DzlgMbconstant.ERROR_REQ));
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * 字节数组解析
+	 * @param b
+	 * @author wujiaxu
+	 * @Time 2017-7-7 上午9:37:55
+	 */
+	private boolean decodeReq(byte[] b) {
+        try {
+        	//解密字节数组
+			b = SecretUtils.decodeData(b);
+			//转换成电子雷管bean
+	        dzlgxxBean = DzlgParseUtil.parseMmxzOnline(b);
+        } catch (Exception e) {
+        	logger.error("解析数组出错！", e);
+        	dzlgxxBean.setCwxx(dzlgxxBean.getError(DzlgMbconstant.ERROR_REQ));
+        	return false;
+		}
+        return true;
+	}
+
+
+	public static void main(String[] args) {
+		DzlgxxBean dzlgxxBean = new DzlgxxBean();
+		dzlgxxBean.setQbqbh("qbqbh");
+
+		List list = new ArrayList();
+		list.add("111");
+		list.add("222");
+		dzlgxxBean.setUidList(list);
+		dzlgxxBean.setCwxx(new byte[]{1});
+
+		String str = JaxbUtil.convertToXml(dzlgxxBean);
+		System.out.println(str);
+		//DzlgxxBean dzlgxxBean_ = JaxbUtil.converyToJavaBean(str, DzlgxxBean.class);
+		//		System.out.println(dzlgxxBean_);
+		dzlgxxBean.showReqLog();
+		
+	}
+
+
+}

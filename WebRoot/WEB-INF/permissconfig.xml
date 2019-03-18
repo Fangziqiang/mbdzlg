@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jadlsoft-jaly>
+	<!--
+				url: 链接方式
+			 gncode: 对应功能代码
+		 managetype: 数据管理方式（0: 无限制, 1: 本地管理, 2: 属地管理, 3: 市局、省厅所有的权限、4: 省厅独有权限）
+		manageparam: 管理参数，列表查询使用queryparamter[字段名称]，其中queryparamter可以省略 
+		  paramname: 功能参数名称
+		 paramvalue: 功能参数值
+	-->
+
+	<!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 系统管理 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+	<item url="/index/index_index.action" gncode="" managetype="0" manageparam="" />
+	<item url="/index/text" gncode="" managetype="0" manageparam="" />
+	<item url="/login/login!toHomePage.action" gncode="" managetype="0" manageparam="" />
+	<item url="/xzqh/selectXzqh.action" gncode="" managetype="0" manageparam="" />
+	<item url="/demo/demo.html" gncode="" managetype="0" manageparam="" />
+
+	 <!-- 用户访问日志 -->
+	 <item url="/yhfw/yhfwAction_skipXxxx.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/yhfw/yhfwAction_skipLgxx.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/yhfw/yhfwAction_skipFhsjXxxx.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/yhfw/yhfwAction_findFhxx.action" gncode="" managetype="0" manageparam="" />
+	 <item url="/yhfw/yhfwAction_skipQqcsXxxx.action" gncode="" managetype="0" manageparam="" />
+
+	
+</jadlsoft-jaly>

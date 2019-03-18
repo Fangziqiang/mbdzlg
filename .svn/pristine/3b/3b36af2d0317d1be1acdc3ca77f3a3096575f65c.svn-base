@@ -1,0 +1,37 @@
+package com.jadlsoft.domain;
+
+public class LgBean {
+	public static final String db_tablename = "t_dzlg_lg";
+	public static final String db_tablepkfields = "id";
+	private String id;
+	//雷管id
+	private String lguid;
+	//关联的用户访问 id; 
+	private String yufw_id;
+	//状态
+	private String zt;
+	public String getZt() {
+		return zt;
+	}
+	public void setZt(String zt) {
+		this.zt = zt;
+	}
+	public String getId() {
+		return id;
+	}
+	public void setId(String id) {
+		this.id = id;
+	}
+	public String getLguid() {
+		return lguid;
+	}
+	public void setLguid(String lguid) {
+		this.lguid = lguid;
+	}
+	public String getYufw_id() {
+		return yufw_id;
+	}
+	public void setYufw_id(String yufw_id) {
+		this.yufw_id = yufw_id;
+	}
+}

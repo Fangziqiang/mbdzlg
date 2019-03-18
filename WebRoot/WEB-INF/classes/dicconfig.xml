@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<columns>
+<!--本配置文件配置格式（开始）-->
+	<!--
+	<column name="" ====是业务表中数据字典项的字段名（sql语句返回的字段名），对应页面中字段名
+	table="" ===========数据字典的名称，（配置文件applicationContext.xml中三段配置第一项）
+	key="" =============对应业务表中与主键对应的字段（可能有多个字段，使用逗号隔开）
+	text="" ============对应数据字典中的显示字段
+	desc=""/>===========描述，供开发人员维护使用
+	-->
+	<!--本配置文件配置格式（结束）-->
+	<column name="xzqh" table="t_dw_wlfwptdz" key="xzqh" text="dz" desc=""></column>
+</columns>

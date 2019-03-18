@@ -1,0 +1,24 @@
+package com.jadlsoft.business.Yhfw;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
+import com.core.business.BaseManager;
+import com.jadlsoft.domain.UserBean;
+import com.jadlsoft.domain.YhfwBean;
+import com.jadlsoft.utils.DateUtils;
+
+
+public class YhfwManager extends BaseManager  {
+	private Logger logger = Logger.getLogger(YhfwManager.class);
+	public void saveYHfw(YhfwBean yhfw){
+		int nextval = daoUtils.getNextval("Q_DZLG_YHFW");
+		yhfw.setId(nextval+"");
+		daoUtils.save(yhfw);
+		logger.error("用户访问信息保存成功！");
+	}
+	
+}

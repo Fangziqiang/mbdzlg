@@ -1,0 +1,97 @@
+package com.jadlsoft.struts.action.dzlg;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import net.sf.json.JSONObject;
+
+import org.apache.log4j.Logger;
+
+import com.core.utils.SpringBeanFactory;
+import com.jadlsoft.business.dzlg.DzlgManager;
+import com.jadlsoft.business.dzlg.DzlgParseUtil;
+import com.jadlsoft.domain.DzlgParseHelper;
+import com.jadlsoft.domain.DzlgReqBean;
+import com.jadlsoft.utils.JsonUtils;
+import com.jadlsoft.utils.MBDZLGConstant;
+import com.jadlsoft.utils.TripleDES3_DzlgMmxz;
+import com.jit.util.Base64;
+/**
+ * 
+ * 电子雷管使用上报【http方式】
+ * @author wujiaxu
+ * @Time 2017-7-31 下午4:11:06
+ *
+ */
+public class JsonSysbAction extends HttpServlet{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private static Logger logger = Logger.getLogger(JsonSysbAction.class);
+	public void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		this.doPost(request, response);
+	}
+
+	public void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		DzlgManager dzlgManager = (DzlgManager) SpringBeanFactory
+				.getBean("dzlgManager");
+		// 读取请求内容
+		response.setCharacterEncoding("utf-8");
+		PrintWriter out = response.getWriter();
+		String str = null;
+		DzlgReqBean dzlgReqBean = null;
+		String jmxx = null;
+		/**
+		 * 1、获取请求数据
+		 */
+		String param = request.getParameter("param");
+		logger.info(MBDZLGConstant.LOGINFO_TITLE_SUCCESS+"【使用上报】请求数据——>"+param);
+		//获取加密的请求参数
+		if(param == null || "".equals(param)){
+			logger.info(MBDZLGConstant.LOGINFO_TITLE_FAILE+"【使用上报】参数为空");
+			dzlgReqBean.setError(MBDZLGConstant.ERROR_REQ);
+		}else{
+			try {	
+				//1.1、解密
+				jmxx = DzlgParseHelper.decode_http(param);
+				logger.info(MBDZLGConstant.LOGINFO_TITLE_SUCCESS+"【使用上报】请求信息解密成功，解密数据——>"+jmxx);
+				Map map = JsonUtils.getMap4Json(jmxx);
+				String sbbh = map.get("sbbh") == null ? "" : map.get("sbbh")+"";
+				String jd = map.get("jd") == null ? "" : map.get("jd")+"";
+				String wd = map.get("wd") == null ? "" : map.get("wd")+"";
+				String uid = map.get("uid") == null ? "" : map.get("uid")+"";
+				String bpsj = map.get("bpsj") == null ? "" : map.get("bpsj")+"";
+				String bprysfz = map.get("bprysfz") == null ? "" : map.get("bprysfz")+"";
+				String htid = map.get("htid") == null ? "" : map.get("htid")+"";
+				String xmbh = map.get("xmbh") == null ? "" : map.get("xmbh")+"";
+				//1.2、封装数据
+				dzlgReqBean = DzlgParseUtil.packHttpSyxxsb(sbbh, jd, wd, bpsj, bprysfz, htid, xmbh, uid);
+				/**
+				 * 2、请求网络服务平台请求
+				 */
+				dzlgReqBean = dzlgManager.reqToWlfwpt(dzlgReqBean);
+			} catch (Exception e) {
+				logger.error(MBDZLGConstant.LOGINFO_TITLE_FAILE+"【使用上报】——>"+MBDZLGConstant.SYSTEMINFO+"处理出错！",e);
+				dzlgReqBean.setError(MBDZLGConstant.ERROR_REQ);
+			}
+		}
+		/**
+		 * 3、返回信息
+		 */
+		//3.1、组装信息
+		str = (String) DzlgParseHelper.makeReMsg(dzlgReqBean);
+		//3.2、返回
+		logger.info(MBDZLGConstant.LOGINFO_TITLE_SUCCESS+"【使用上报】——>"+MBDZLGConstant.SYSTEMINFO+"返回数据："+str);
+		out.print(str);
+	}
+}

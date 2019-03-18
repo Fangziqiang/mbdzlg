@@ -1,0 +1,308 @@
+package com.jadlsoft.socket;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+
+import com.jadlsoft.business.dzlg.DzlgManager;
+import com.jadlsoft.utils.DateUtils;
+import com.jadlsoft.utils.HexUtil;
+import com.jadlsoft.utils.SecretUtils;
+import com.jadlsoft.utils.SpringBeanFactory;
+
+public class DzlgMmlxxzManager implements Runnable {
+	private static Logger logger = Logger.getLogger(DzlgMmlxxzManager.class);
+	
+	private Socket socket;
+	private int delayTime = 100000;
+	private final int DATATYPE_F = 4;//
+	private final int DATATYPE_J = 20;//简式离线下载
+	public DzlgMmlxxzManager(Socket socket) {
+		this.socket = socket;
+	}
+	
+	public void run() {
+		while (!socket.isClosed()) {
+			logger.info("-------电子雷管密码离线下载socket服务开始!-------");
+			Date ljdate = DateUtils.getCurrentDate("yyyy-MM-dd HH:mm:ss");
+			byte[] res = null;
+			try {
+				socket.setKeepAlive(true);
+				socket.setSoTimeout(delayTime);
+				
+				//1.读取客服端请求信息
+				InputStream is = socket.getInputStream();
+				int count = 0; 
+				int dataLength = 0;
+				int sum = 0;
+				byte[] resltByte = new byte[]{};
+				int rc = 0;
+				int len = 0;
+				//处理分包
+				do{
+					while (count == 0) { 
+						count = is.available(); 
+						if(DateUtils.getCurrentDate("yyyy-MM-dd HH:mm:ss").getTime()-ljdate.getTime() > 20*1000){
+		                       logger.info("未接收到数据，socket连接关闭！");
+		                       return;
+						   }
+					} 
+					byte[] b = new byte[count]; 
+					sum ++;
+					len = is.read(b);
+					rc += len;
+					resltByte = byteMerger(resltByte, b);
+					if(sum == 1){
+						//数据头
+						int dataTitle = HexUtil.convertBytes(b, 0, 2);
+						if(dataTitle != 6876){
+	                        logger.info("非法请求socket连接关闭");
+	                        return;
+						}
+						//数据总长度		（4字节）
+						dataLength = HexUtil.bytesToInt2(b, 3)+7;//包含数据头
+						logger.info("接收数据帧总长度："+dataLength);
+					}
+					logger.info("第"+sum+"数据包数据长度："+count);
+					count = 0;
+				}while(dataLength != rc);
+	            
+	            //2.数据帧解密
+	            resltByte = SecretUtils.decodeData(resltByte);
+
+	            //3.请求电子雷管下载密码
+	            res = getDzlgqbmmxx(resltByte);
+	            
+	            //4.数据帧加密
+	            if(resltByte[2] == 3){
+	            	res = SecretUtils.encodeData(res,DATATYPE_F);
+	            }else if(resltByte[2] == 19){
+	            	res = SecretUtils.encodeData(res,DATATYPE_J);
+	            }
+				//5.请求结果返回客户端
+	            OutputStream os = socket.getOutputStream();
+	            os.write(res);
+	            os.flush();
+            	Thread.sleep(3000);//等待3秒钟，起爆器接收到数据再关闭连接
+            	//6.关闭资源
+            	os.close();
+            	is.close();
+			} catch (Exception e) {
+				logger.info("服务器处理电子雷管密码离线下载异常！", e);
+			} finally {
+				if(res == null || res.length <= 15){
+					if (socket != null) {   
+	                    try {   
+	                        socket.close();   
+	                        logger.info("socket连接关闭");
+	                    } catch (Exception e) {   
+	                        socket = null;   
+	                        logger.info("服务器关闭socket异常！", e);
+	                    } 
+					}
+				}  
+				logger.info("-------电子雷管密码离线下载服务结束！-------");
+			}
+		}
+	}
+	
+	/**
+	 * 根据起爆器请求信息获取电子雷管起爆密码
+	 * @throws Exception 
+	 * @参数：@param b
+	 * @参数：@return
+	 * @返回值：byte[]
+	 */
+	private byte[] getDzlgqbmmxx(byte[] b) throws Exception {
+		DzlgManager dzlgManager = (DzlgManager) SpringBeanFactory.getBean("dzlgManager");
+		if(b == null || b.length <= 0){
+			return null;
+		}
+		Map map = parseDzlgMmlxxzMsg(b);
+		/*Map map = new HashMap();
+		map.put("qbqbh", "cs002");
+		map.put("jd", 113.388);
+		map.put("wd", 27.801);
+		map.put("dwdm", 11);
+		map.put("dataType", 5);
+		List uidList = new ArrayList();
+		uidList.add("6060720000104");
+		map.put("uidList", uidList);*/
+		/**
+		 * 2.创建请求XMl文件
+		 */
+		String strXml = dzlgManager.createXml(map);
+		/**
+		 * 3.调用webservice访问网络服务平台
+		 */
+		logger.info("Socket离线下载");
+		logger.info("起爆器编号："+map.get("qbqbh"));
+		logger.info("项目编号："+map.get("xmbh"));
+		logger.info("合同ID："+map.get("htid"));
+		int xtmCount = 0;
+		int htmCount = 0;
+		int fbhCount = 0;
+		if(!"".equals(map.get("xtm"))){
+			xtmCount = map.get("xtm").toString().split(",").length;
+		}
+		if(!"".equals(map.get("htm"))){
+			htmCount = map.get("htm").toString().split(",").length;
+		}
+		if(!"".equals(map.get("fbh"))){
+			fbhCount = map.get("fbh").toString().split(",").length;
+		}
+		logger.info("箱条码（共"+xtmCount+"箱）："+map.get("xtm"));
+		logger.info("盒条码（共"+htmCount+"盒）："+map.get("htm"));
+		logger.info("发编号（共"+fbhCount+"发）："+map.get("fbh"));
+		byte[] res = (byte[]) dzlgManager.getSocketReturnValue(strXml,map);
+		return res;
+	}
+
+
+	/**
+	 * 1.解析字节数据获取请求的参数
+	 * @参数：@param b
+	 * @参数：@return
+	 * @返回值：DzlgMmxzBean
+	 */
+	private Map parseDzlgMmlxxzMsg(byte[] b) {
+		if(b == null || "".equals(b)){
+			return null;
+		}
+		Map map = new HashMap();
+		int dataIndex = 0;
+		StringBuffer xtmStr = new StringBuffer("");
+		StringBuffer htmStr = new StringBuffer("");
+		StringBuffer fbhStr = new StringBuffer("");
+		//1.数据头			（2字节）
+		int dataTitle = HexUtil.convertBytes(b, 0, 2);
+		dataIndex += 2;
+		//2.数据类型			（1字节）
+		int dataType= HexUtil.convertBytes(b,dataIndex, 1);
+		dataIndex += 1;
+		//3.数据总长度		（4字节）
+		int dataLength = HexUtil.convertBytes(b, dataIndex, 4);
+		dataIndex += 4;
+		//4.箱条码个数		（1字节）
+		int xtmCount = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		if(xtmCount == 0 ){
+		}else{
+			//5.箱条码内容总长度	（1字节）
+			int xtmListTotalLength = HexUtil.convertBytes(b, dataIndex, 2);
+			dataIndex += 2;
+			//6.箱条码数据块	（xtmListTotalLength字节）
+			for(int i = 0 ; i < xtmCount ; i++){
+				int xtmLength = HexUtil.convertBytes(b, dataIndex, 1);
+				dataIndex += 1;
+				String xtm = String.valueOf(HexUtil.convertASCBytesToString(b, dataIndex, xtmLength));
+				dataIndex += xtmLength;
+				if(i == xtmCount - 1){
+					xtmStr.append(xtm);
+				}else{
+					xtmStr.append(xtm).append(",");
+				}
+			}
+		}
+		//7.盒条码个数		（1字节）
+		int htmCount = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		if(htmCount == 0){
+		}else{
+			//8.盒条码内容总长度	（1字节）
+			int htmListTotalLength = HexUtil.convertBytes(b, dataIndex, 2);
+			dataIndex += 2;
+			//9.盒条码数据块	（htmListTotalLength字节）
+			for(int i = 0 ; i < htmCount ; i++){
+				int htmLength = HexUtil.convertBytes(b, dataIndex, 1);
+				dataIndex += 1;
+				String htm = String.valueOf(HexUtil.convertASCBytesToString(b, dataIndex, htmLength));
+				dataIndex += htmLength;
+				if(i == htmCount - 1 ){
+					htmStr.append(htm);
+				}else{
+					htmStr.append(htm).append(",");
+				}
+			}
+		}
+		//10.发编号个数		（1字节）
+		int fbhCount = b[dataIndex]* 256+(b[dataIndex+1] < 0 ? b[dataIndex+1]+256:b[dataIndex+1]);
+		dataIndex += 2;
+		if(fbhCount == 0){
+		}else{
+			//11.发编号内容总长度	（1字节）
+			int fbhListTotalLength = HexUtil.convertBytes(b, dataIndex, 2);
+			dataIndex += 2;
+			//12.发编号数据块	（htmListTotalLength字节）
+			for(int i = 0 ; i < fbhCount ; i++){
+				int fbhLength = HexUtil.convertBytes(b, dataIndex, 1);
+				dataIndex += 1;
+				String fbh = String.valueOf(HexUtil.convertASCBytesToString(b, dataIndex, fbhLength));
+				dataIndex += fbhLength;
+				if(i == fbhCount - 1){
+					fbhStr.append(fbh);
+				}else{
+					fbhStr.append(fbh).append(",");
+				}
+			}
+		}
+		//13.合同编号长度		（1字节）
+		int htidLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//14.合同编号		（htidLehgth字节）
+		String htid = String.valueOf(HexUtil.convertASCBytesToString(b, dataIndex, htidLength));
+		dataIndex += htidLength;
+		//15.项目编号长度		（1字节）
+		int xmxhLehgth = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//16.项目编号		（xmxhLength字节）
+		String xmxh = String.valueOf(HexUtil.convertASCBytesToString(b, dataIndex, xmxhLehgth));
+		dataIndex += xmxhLehgth;
+//		//14.单位代码长度		（1字节）
+//		int dwdmLength = HexUtil.convertBytes(b, dataIndex, 1);
+//		dataIndex += 1;
+//		//15.单位代码			（dwdmLength字节）
+//		String dwdm = HexUtil.convertASCBytesToString(b, dataIndex, dwdmLength);
+//		dataIndex += dwdmLength;
+		//17.起爆器编号长度		（1字节）
+		int qbqbhLength = HexUtil.convertBytes(b, dataIndex, 1);
+		dataIndex += 1;
+		//18.起爆器编号			（dwdmLength字节）
+		String qbqbh = HexUtil.convertASCBytesToString(b, dataIndex, qbqbhLength);
+		dataIndex += qbqbhLength;
+		
+		map.put("dataType", dataType);
+		map.put("htid", htid);
+		map.put("xmbh", xmxh);
+		//map.put("dwdm", dwdm);
+		map.put("xtm", xtmStr.toString());
+		map.put("htm", htmStr.toString());
+		map.put("fbh", fbhStr.toString());
+		map.put("qbqbh", qbqbh);
+		return map;
+		
+	}
+	
+	/**
+	 * 合并两个字节数组
+	 * @param byte_1
+	 * @param byte_2
+	 * @return
+	 * @author niutongda
+	 * @Time 2017-3-22 上午11:34:11 
+	 *
+	 */
+	private static byte[] byteMerger(byte[] byte_1, byte[] byte_2){  
+        byte[] byte_3 = new byte[byte_1.length+byte_2.length];  
+        System.arraycopy(byte_1, 0, byte_3, 0, byte_1.length);  
+        System.arraycopy(byte_2, 0, byte_3, byte_1.length, byte_2.length);  
+        return byte_3;  
+    }  
+	
+
+}

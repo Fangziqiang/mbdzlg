@@ -1,0 +1,365 @@
+package com.jadlsoft.domain;
+
+import java.util.List;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
+
+import org.apache.log4j.Logger;
+
+import com.jadlsoft.utils.MBDZLGConstant;
+import com.jadlsoft.utils.SecretUtils;
+
+/**
+ * 
+ * 电子雷管接收信息bean【注解支持bean与xml互转】
+ * @author wujiaxu
+ * @Time 2017-7-4 下午4:20:05
+ *
+ */
+@XmlAccessorType(XmlAccessType.FIELD)  
+@XmlRootElement(name = "sq")
+@XmlType(propOrder = { "qbqbh", "dwdm", "htid", "xmbh", "xtm", "htm", "fbh", "jd", "wd", "uidList","bpsj" ,"bprysfz" ,"dataTitle","dataType","dataLength","isAddCwxxLenth","cwxx","isAddTitle"})  
+public class DzlgxxBean {
+	private static Logger logger = Logger.getLogger(DzlgxxBean.class);
+	
+	/*
+	 * 起爆器编号
+	 */
+	private String qbqbh;
+	/*
+	 * 单位代码
+	 */
+	private String dwdm;
+	/*
+	 * 合同编号
+	 */
+	
+	private String htid;
+	/*
+	 * 项目编号
+	 */
+	private String xmbh;
+	/*
+	 * 箱条码
+	 */
+	private String xtm;
+	/*
+	 * 盒条码
+	 */
+	private String htm;
+	/*
+	 * 发编号
+	 */
+	private String fbh;
+	/*
+	 * 经度
+	 */
+	private String jd;
+	/*
+	 * 纬度
+	 */
+	private String wd;
+	
+
+	@XmlElementWrapper(name = "uids")
+    @XmlElement(name = "uid")
+	private List<String> uidList;
+    
+	/*
+	 * 爆破时间
+	 */
+	private String bpsj;
+
+	/*
+	 * 爆破人员身份证
+	 */
+	private String bprysfz;
+	
+	/*
+	 * 数据头
+	 */
+	private Integer dataTitle;
+
+	/*
+	 * 数据类型 
+	 */
+	private Integer dataType;
+	/*
+	 * 数据类型 
+	 */
+	private Integer dataLength;
+	
+	/*
+	 * 错误信息
+	 */
+	private Object cwxx;
+	
+	/*
+	 * 返回内容是否组装错误信息长度
+	 */
+	private boolean isAddCwxxLenth;
+	/*
+	 * 返回内容是否组装数据头
+	 */
+	private boolean isAddTitle;
+	
+
+	public boolean isAddTitle() {
+		return isAddTitle;
+	}
+	public void setAddTitle(boolean isAddTitle) {
+		this.isAddTitle = isAddTitle;
+	}
+	public Integer getDataTitle() {
+		return dataTitle;
+	}
+	public void setDataTitle(Integer dataTitle) {
+		this.dataTitle = dataTitle;
+	}
+	public Integer getDataLength() {
+		return dataLength;
+	}
+	public void setDataLength(Integer dataLength) {
+		this.dataLength = dataLength;
+	}
+	public boolean isAddCwxxLenth() {
+		return isAddCwxxLenth;
+	}
+	public void setAddCwxxLenth(boolean isAddCwxxLenth) {
+		this.isAddCwxxLenth = isAddCwxxLenth;
+	}
+	public Object getCwxx() {
+		return cwxx;
+	}
+	public void setCwxx(Object cwxx) {
+		this.cwxx = cwxx;
+	}
+	public List getUidList() {
+		return uidList;
+	}
+    public void setUidList(List<String> uidList) {
+		this.uidList = uidList;
+	}
+	public Integer getDataType() {
+		return dataType;
+	}
+	public void setDataType(Integer dataType) {
+		this.dataType = dataType;
+	}
+	public String getQbqbh() {
+		return qbqbh;
+	}
+	public void setQbqbh(String qbqbh) {
+		this.qbqbh = qbqbh;
+	}
+	public String getDwdm() {
+		return dwdm;
+	}
+	public void setDwdm(String dwdm) {
+		this.dwdm = dwdm;
+	}
+	public String getHtid() {
+		return htid;
+	}
+	public void setHtid(String htid) {
+		this.htid = htid;
+	}
+	public String getXmbh() {
+		return xmbh;
+	}
+	public void setXmbh(String xmbh) {
+		this.xmbh = xmbh;
+	}
+	public String getXtm() {
+		return xtm;
+	}
+	public void setXtm(String xtm) {
+		this.xtm = xtm;
+	}
+	public String getHtm() {
+		return htm;
+	}
+	public void setHtm(String htm) {
+		this.htm = htm;
+	}
+	public String getFbh() {
+		return fbh;
+	}
+	public void setFbh(String fbh) {
+		this.fbh = fbh;
+	}
+	public String getJd() {
+		return jd;
+	}
+	public void setJd(String jd) {
+		this.jd = jd;
+	}
+	public String getWd() {
+		return wd;
+	}
+	public void setWd(String wd) {
+		this.wd = wd;
+	}
+	
+	public String getBpsj() {
+		return bpsj;
+	}
+	public void setBpsj(String bpsj) {
+		this.bpsj = bpsj;
+	}
+	public String getBprysfz() {
+		return bprysfz;
+	}
+	public void setBprysfz(String bprysfz) {
+		this.bprysfz = bprysfz;
+	}
+	
+	/**
+	 * 
+	 * 输出请求日志
+	 * @author wujiaxu
+	 * @Time 2017-7-7 上午10:01:26
+	 */
+	public void showReqLog(){
+		if(this.dataType != null){
+			switch (this.dataType) {
+			case MBDZLGConstant.DATATYPE_ZXXZ_INP_JS:
+				this.showZxxzLog(MBDZLGConstant.SOCKET_ZXXZ_JS);//在线下载(简式)
+				break;
+			case MBDZLGConstant.DATATYPE_ZXXZ_INP_FS:	
+				this.showZxxzLog(MBDZLGConstant.SOCKET_ZXXZ_FS);//在线下载(复式)
+				break;
+			case MBDZLGConstant.DATATYPE_LXXZ_INP_JS:	
+				this.showLxxzLog(MBDZLGConstant.SOCKET_ZXXZ_JS);//离线下载(简式)
+				break;
+			case MBDZLGConstant.DATATYPE_LXXZ_INP_FS:	
+				this.showLxxzLog(MBDZLGConstant.SOCKET_ZXXZ_FS);//离线下载(复式)
+				break;
+			case MBDZLGConstant.DATATYPE_GXGZ_INP:	
+				this.showGzgxLog(MBDZLGConstant.SOCKET_GZGX);	//更新规则
+				break;
+			case MBDZLGConstant.DATATYPE_QBQWZSB_INP:	
+				this.showWzsbLog(MBDZLGConstant.SOCKET_WZSB);	//起爆器位置上报
+				break;
+			case MBDZLGConstant.DATATYPE_SYXXSB_INP:
+				this.showSyxxsbLog(MBDZLGConstant.SOCKET_SYSB);	//使用信息上报
+				break;
+			default:
+				break;
+			}
+		}
+	}
+	
+	
+	
+	/**
+	 * 更新规则日志
+	 * @param title
+	 * @author wujiaxu
+	 * @Time 2017-7-8 下午12:27:07
+	 */
+	private void showGzgxLog(String title) {
+		logger.info("**********"+title+"**********");
+		logger.info("【参数】起爆器编号："+(this.qbqbh == null ? "" :this.qbqbh));
+		logger.info("【参数】经度："+(this.jd == null ? "" :this.jd));
+		logger.info("【参数】纬度："+(this.wd == null ? "" :this.wd));
+		logger.info("【参数】单位代码："+(this.dwdm == null ? "" :this.dwdm));
+		logger.info("【参数】合同ID："+(this.htid == null ? "" :this.htid));
+		logger.info("【参数】项目编号："+(this.xmbh == null ? "" :this.xmbh));
+		logger.info("*************************************");
+	}
+	
+	/**
+	 * 起爆器位置上报日志
+	 * @param title
+	 * @author wujiaxu
+	 * @Time 2017-7-9 上午11:13:05
+	 */
+	private void showWzsbLog(String title) {
+		logger.info("**********"+title+"**********");
+		logger.info("【参数】起爆器编号："+(this.qbqbh == null ? "" :this.qbqbh));
+		logger.info("【参数】经度："+(this.jd == null ? "" :this.jd));
+		logger.info("【参数】纬度："+(this.wd == null ? "" :this.wd));
+		logger.info("【参数】单位代码："+(this.dwdm == null ? "" :this.dwdm));
+		logger.info("*************************************");
+		
+	}
+	
+	
+	/**
+	 * 使用信息上报日志
+	 * @param title
+	 * @author wujiaxu
+	 * @Time 2017-7-9 下午12:00:22
+	 */
+	private void showSyxxsbLog(String title) {
+	
+		logger.info("**********"+title+"**********");
+		logger.info("【参数】起爆器编号："+(this.qbqbh == null ? "" :this.qbqbh));
+		logger.info("【参数】单位代码："+(this.dwdm == null ? "" :this.dwdm));
+		logger.info("【参数】经度："+(this.jd == null ? "" :this.jd));
+		logger.info("【参数】纬度："+(this.wd == null ? "" :this.wd));
+		logger.info("【参数】雷管共 "+(this.uidList == null ? 0 : this.uidList.size())+" 发");
+		logger.info("*************************************");
+		
+	}
+	
+	/**
+	 * 离线下载日志
+	 * @param title
+	 * @author wujiaxu
+	 * @Time 2017-7-8 上午11:33:08
+	 */
+	private void showLxxzLog(String title) {
+		logger.info("**********"+title+"**********");
+		logger.info("【参数】起爆器编号："+(this.qbqbh == null ? "" :this.qbqbh));
+		logger.info("【参数】单位代码："+(this.dwdm == null ? "" :this.dwdm));
+		logger.info("【参数】合同ID："+(this.htid == null ? "" :this.htid));
+		logger.info("【参数】项目编号："+(this.xmbh == null ? "" :this.xmbh));
+		logger.info("【参数】箱条码（共"+(this.xtm == null ? 0 : this.xtm.split(",").length)+"箱）："+(this.xtm == null ? "" : this.xtm));
+		logger.info("【参数】盒条码（共"+(this.htm == null ? 0 : this.htm.split(",").length)+"盒）："+(this.htm == null ? "" : this.htm));
+		logger.info("【参数】发编号（共"+(this.fbh == null ? 0 : this.fbh.split(",").length)+"发）："+(this.fbh == null ? "" : this.fbh));
+		logger.info("*************************************");
+
+	}
+	
+	/**
+	 * 在线下载日志
+	 * @param title
+	 * @author wujiaxu
+	 * @Time 2017-7-7 上午10:03:35
+	 */
+	private void showZxxzLog(String title) {
+		logger.info("**********"+title+"**********");
+		logger.info("【参数】起爆器编号："+(this.qbqbh == null ? "" :this.qbqbh));
+		logger.info("【参数】单位代码："+(this.dwdm == null ? "" :this.dwdm));
+		logger.info("【参数】经度："+(this.jd == null ? "" :this.jd));
+		logger.info("【参数】纬度："+(this.wd == null ? "" :this.wd));
+		logger.info("【参数】雷管共 "+(this.uidList == null ? 0 : this.uidList.size())+" 发");
+		logger.info("*************************************");
+	}
+	
+	/**
+	 * 获取错误信息
+	 * @return
+	 * @author wujiaxu
+	 * @Time 2017-7-7 下午3:35:42
+	 */
+	public byte[] ERROR(byte[] errorInfo){
+		if(this.isAddCwxxLenth){
+			//补充错误信息长度
+			byte[] newByte = new byte[1 + errorInfo.length];
+			byte[] errorLength = SecretUtils.int2bytes(errorInfo.length);
+			System.arraycopy(errorLength, 0, newByte, 0, 1);
+			System.arraycopy(errorInfo, 0, newByte, 1, errorInfo.length);
+			return newByte;
+		}
+		return errorInfo;
+	}
+	
+}

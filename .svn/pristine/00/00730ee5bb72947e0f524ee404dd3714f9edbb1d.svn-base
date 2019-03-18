@@ -1,0 +1,39 @@
+package com.jadlsoft.struts.action;
+import java.io.IOException;
+import java.util.Map;
+
+import com.core.struts.action.BaseAction;
+import com.core.struts.action.login.UserUtils;
+import com.jadlsoft.business.login.LoginManager;
+import com.jadlsoft.domain.UserBean;
+import com.jadlsoft.model.session.UserSessionBean;
+public class LoginAction extends BaseAction  {
+	private LoginManager loginManager;
+	private String username;
+	private String password;
+	
+	public LoginManager getLoginManager() {
+		return loginManager;
+	}
+	public void setLoginManager(LoginManager loginManager) {
+		this.loginManager = loginManager;
+	}
+	public void setUsername(String username) {
+		this.username = username;
+	}
+	public void setPassword(String password) {
+		this.password = password;
+	}
+	public String login() {
+		Map map = loginManager.findByUser(username, password);
+		if(map != null && map.size()>0){
+			try {
+				response.sendRedirect("../yhfw/yhfwlist.action");
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		return "index";
+	}
+}
